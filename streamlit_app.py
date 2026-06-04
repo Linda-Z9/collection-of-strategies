@@ -236,7 +236,7 @@ def simulate_strategy(strategy, capital, lookback, fee_tier, risk_mode, allocati
 
 def api_is_up():
     try:
-        with urlopen(f"{API_BASE}/", timeout=3) as response:
+        with urlopen(f"{API_BASE}/api/health", timeout=3) as response:
             return response.status == 200
     except Exception:
         return False
@@ -260,7 +260,7 @@ def start_api_server():
         time.sleep(0.5)
         if api_is_up():
             return True, None
-    return False, "Started local API server, but it did not respond on port 8000."
+    return False, f"Started local API server, but it did not respond on port {API_PORT}."
 
 
 def ensure_api_server():

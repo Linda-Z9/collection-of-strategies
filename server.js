@@ -2735,6 +2735,11 @@ async function handleFundingLive(url, response) {
 
 const server = http.createServer((request, response) => {
   const url = new URL(request.url, `http://${host}:${port}`);
+  if (url.pathname === "/api/health") {
+    sendJson(response, 200, { ok: true });
+    return;
+  }
+
   if (url.pathname === "/api/funding-carry/backtest") {
     handleFundingBacktest(url, response).catch((error) => {
       sendJson(response, 502, { error: error.message });
