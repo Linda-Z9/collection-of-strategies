@@ -1,0 +1,13 @@
+__pycache__/
+*.py[cod]
+
+.streamlit/secrets.toml
+
+*.log
+server-*.log
+streamlit.*.log
+
+.codex_deps/
+
+data/microstructure/
+data/options/

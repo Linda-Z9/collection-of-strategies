@@ -1,0 +1,11 @@
+symbol,source,start_date,end_date,observations,missing_days,coinbase_close_median_abs_diff
+ADA,coinbase_daily_candles,2021-03-18,2026-06-04,1905,0,0.0
+AVAX,coinbase_daily_candles,2021-09-30,2026-06-04,1709,0,0.0
+BCH,coinbase_daily_candles,2021-01-01,2026-06-04,1981,0,0.0
+BTC,coinbase_daily_candles,2021-01-01,2026-06-04,1981,0,0.0
+DOGE,coinbase_daily_candles,2021-06-03,2026-06-04,1828,0,0.0
+ETH,coinbase_daily_candles,2021-01-01,2026-06-04,1981,0,0.0
+LINK,coinbase_daily_candles,2021-01-01,2026-06-04,1981,0,0.0
+LTC,coinbase_daily_candles,2021-01-01,2026-06-04,1981,0,0.0
+SOL,coinbase_daily_candles,2021-06-17,2026-06-04,1814,0,0.0
+XRP,coinbase_daily_candles,2021-01-01,2026-06-04,1077,904,0.0
