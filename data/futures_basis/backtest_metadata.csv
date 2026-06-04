@@ -1,0 +1,2 @@
+"mode","instrument","spotProduct","days","frequency"
+"public-deribit-coinbase-basis-v2","rolling-nearest-liquid","BTC-USD","365","1h Deribit futures candles with 1h Coinbase spot candles; net-basis carry v2"

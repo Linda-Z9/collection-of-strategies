@@ -1,0 +1,2 @@
+"mode","instrument","symbol","days","frequency","fallbackFromBinance"
+"public-deribit-funding","BTC-PERPETUAL",,"365","1h Deribit BTC perpetual funding history","451 : https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=8h&startTime=1749064374755&endTime=1780600374755&limit=1000"
