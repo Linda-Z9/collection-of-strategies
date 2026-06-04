@@ -142,6 +142,14 @@ def _cached_payload(capital, lookback, symbol):
 
 
 def run_backtest(fetch_json, capital=100000, lookback=365, symbol="BTCUSDT"):
+    if os.environ.get("COLLECTION_STRATEGY_CACHE_ONLY") != "1" and callable(fetch_json):
+        payload, error = fetch_json(
+            "/api/funding-carry/backtest",
+            {"symbol": symbol, "days": lookback, "capital": capital},
+        )
+        if payload:
+            return payload, None
+
     return _cached_payload(capital, lookback, symbol)
 
 
