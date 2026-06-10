@@ -1,0 +1,1033 @@
+{
+  "generatedUtc": "2026-06-10T05:58:53.698814+00:00",
+  "sources": {
+    "etfPrices": "Yahoo Finance chart API, adjusted close when available",
+    "macro": "FRED CSV export with documented local fallbacks"
+  },
+  "strategies": {
+    "strategy_1_regime_aware_etf_momentum": {
+      "mode": "streamlit-python-regime-aware-etf-momentum",
+      "rows": {
+        "aligned": 5391,
+        "start": "2005-01-03",
+        "end": "2026-06-08",
+        "backtestStart": "2007-01-03",
+        "backtestEnd": "2026-06-08",
+        "bySymbol": {
+          "SPY": 8396,
+          "QQQ": 6854,
+          "IWM": 6546,
+          "EFA": 6231,
+          "EEM": 5825,
+          "HYG": 4821,
+          "TLT": 6003,
+          "IEF": 6003,
+          "GLD": 5421,
+          "SHY": 6003
+        },
+        "byMacroSeries": {
+          "USALOLITONOSTSAM": 289,
+          "T10Y3M": 14122,
+          "BAMLH0A0HYM2": 6014,
+          "CPIAUCSL": 315,
+          "UNRATE": 316
+        }
+      },
+      "latestRegime": {
+        "time": 1780876800000,
+        "date": "2026-06-08",
+        "regime": "Slowdown",
+        "stressOverride": false,
+        "eligible": [
+          "SPY",
+          "QQQ",
+          "TLT",
+          "IEF",
+          "GLD",
+          "SHY"
+        ],
+        "selected": [
+          "QQQ",
+          "GLD",
+          "SPY"
+        ],
+        "weights": {
+          "SPY": 0.25339545488907617,
+          "QQQ": 0.25339545488907617,
+          "IWM": 0.0,
+          "EFA": 0.0,
+          "EEM": 0.0,
+          "HYG": 0.0,
+          "TLT": 0.0,
+          "IEF": 0.0,
+          "GLD": 0.12669772744453808,
+          "SHY": 0.0
+        },
+        "scores": {
+          "QQQ": 0.9166666666666667,
+          "GLD": 0.8333333333333333,
+          "SPY": 0.75,
+          "IEF": 0.41666666666666663,
+          "SHY": 0.41666666666666663,
+          "TLT": 0.16666666666666666
+        },
+        "momentum6m": {
+          "QQQ": 0.15243303720526358,
+          "GLD": 0.026192710466678593,
+          "SPY": 0.08626528759879304
+        },
+        "momentum12mSkip1m": {
+          "QQQ": 0.3306347591916128,
+          "GLD": 0.3955323163437705,
+          "SPY": 0.24773049903049071
+        },
+        "above200dma": {
+          "QQQ": true,
+          "GLD": false,
+          "SPY": true
+        },
+        "realizedVol60d": 0.15785602791301048,
+        "volScale": 0.7601863646672286,
+        "cashAllocation": 0.36651136277730956,
+        "turnover": 0.36651136277730956
+      },
+      "currentHoldings": [
+        {
+          "symbol": "SPY",
+          "weight": 0.25339545488907617,
+          "score": 0.75,
+          "momentum6m": 0.08626528759879304,
+          "momentum12mSkip1m": 0.24773049903049071,
+          "above200dma": true
+        },
+        {
+          "symbol": "QQQ",
+          "weight": 0.25339545488907617,
+          "score": 0.9166666666666667,
+          "momentum6m": 0.15243303720526358,
+          "momentum12mSkip1m": 0.3306347591916128,
+          "above200dma": true
+        },
+        {
+          "symbol": "GLD",
+          "weight": 0.12669772744453808,
+          "score": 0.8333333333333333,
+          "momentum6m": 0.026192710466678593,
+          "momentum12mSkip1m": 0.3955323163437705,
+          "above200dma": false
+        }
+      ],
+      "performanceTable": null,
+      "dataHealth": {
+        "priceCoverage": [
+          {
+            "series": "SPY",
+            "role": "ETF adjusted close",
+            "start": "1993-01-29",
+            "end": "2026-06-08",
+            "rows": 8396
+          },
+          {
+            "series": "QQQ",
+            "role": "ETF adjusted close",
+            "start": "1999-03-10",
+            "end": "2026-06-08",
+            "rows": 6854
+          },
+          {
+            "series": "IWM",
+            "role": "ETF adjusted close",
+            "start": "2000-05-26",
+            "end": "2026-06-08",
+            "rows": 6546
+          },
+          {
+            "series": "EFA",
+            "role": "ETF adjusted close",
+            "start": "2001-08-27",
+            "end": "2026-06-08",
+            "rows": 6231
+          },
+          {
+            "series": "EEM",
+            "role": "ETF adjusted close",
+            "start": "2003-04-14",
+            "end": "2026-06-08",
+            "rows": 5825
+          },
+          {
+            "series": "HYG",
+            "role": "ETF adjusted close",
+            "start": "2007-04-11",
+            "end": "2026-06-08",
+            "rows": 4821
+          },
+          {
+            "series": "TLT",
+            "role": "ETF adjusted close",
+            "start": "2002-07-30",
+            "end": "2026-06-08",
+            "rows": 6003
+          },
+          {
+            "series": "IEF",
+            "role": "ETF adjusted close",
+            "start": "2002-07-30",
+            "end": "2026-06-08",
+            "rows": 6003
+          },
+          {
+            "series": "GLD",
+            "role": "ETF adjusted close",
+            "start": "2004-11-18",
+            "end": "2026-06-08",
+            "rows": 5421
+          },
+          {
+            "series": "SHY",
+            "role": "ETF adjusted close",
+            "start": "2002-07-30",
+            "end": "2026-06-08",
+            "rows": 6003
+          }
+        ],
+        "macroCoverage": [
+          {
+            "series": "USALOLITONOSTSAM",
+            "role": "CLI",
+            "start": "2000-01-01",
+            "end": "2024-01-01",
+            "rows": 289
+          },
+          {
+            "series": "T10Y3M",
+            "role": "YC",
+            "start": "1970-01-02",
+            "end": "2026-06-08",
+            "rows": 14122
+          },
+          {
+            "series": "BAMLH0A0HYM2",
+            "role": "CREDIT",
+            "start": "1996-12-31",
+            "end": "2026-06-08",
+            "rows": 6014
+          },
+          {
+            "series": "CPIAUCSL",
+            "role": "CPI",
+            "start": "2000-01-01",
+            "end": "2026-04-01",
+            "rows": 315
+          },
+          {
+            "series": "UNRATE",
+            "role": "UNRATE",
+            "start": "2000-01-01",
+            "end": "2026-05-01",
+            "rows": 316
+          }
+        ],
+        "sourceNotes": [
+          "ETF adjusted closes: Yahoo chart API with durable local JSON cache.",
+          "CLI, CPI, and unemployment: FRED CSV with stale-cache fallback.",
+          "Yield curve: FRED T10Y3M; Yahoo ^TNX minus ^IRX when FRED export is unavailable.",
+          "High-yield OAS: current FRED export merged with a public historical FRED snapshot.",
+          "High-yield OAS gaps: HYG three-month adjusted-price return calibrated to overlapping actual OAS observations.",
+          "FRED USALOLITONOSTSAM currently ends in January 2024; later regime calculations forward-fill its latest observation."
+        ],
+        "creditSourceMonths": {
+          "BAMLH0A0HYM2": 230,
+          "HYG calibrated proxy": 76
+        }
+      }
+    },
+    "strategy_2_dynamic_macro_factor_allocation": {
+      "mode": "python-dynamic-macro-factor-allocation",
+      "rows": {
+        "aligned": 5895,
+        "start": "2003-01-02",
+        "end": "2026-06-08",
+        "backtestStart": "2007-01-03",
+        "backtestEnd": "2026-06-08",
+        "bySymbol": {
+          "SPY": 8396,
+          "QQQ": 6854,
+          "IWM": 6546,
+          "EFA": 6231,
+          "EEM": 5825,
+          "TLT": 6003,
+          "IEF": 6003,
+          "TIP": 5661,
+          "LQD": 6003,
+          "HYG": 4821,
+          "DBC": 5116,
+          "GLD": 5421,
+          "SHY": 6003
+        },
+        "byMacroSeries": {
+          "USALOLITONOSTSAM": 289,
+          "T10Y3M": 14122,
+          "BAMLH0A0HYM2": 6014,
+          "CPIAUCSL": 315,
+          "UNRATE": 316
+        }
+      },
+      "latestRegime": {
+        "date": "2026-06-08",
+        "regime": "Slowdown",
+        "stressOverride": false
+      },
+      "currentHoldings": null,
+      "performanceTable": [
+        {
+          "series": "Version A: Rule-Based",
+          "pnl": 506200.8574778837,
+          "annReturn": 0.0971938279797997,
+          "cagr": 0.0971938279797997,
+          "annVol": 0.1088097157598892,
+          "maxDrawdown": -0.24575478629420533,
+          "sharpe": 0.9082833756085368,
+          "sortino": 1.2760356819762224,
+          "calmar": 0.3954910886799336,
+          "monthlyWinRate": 0.6609442060085837,
+          "turnover": 52.75556090453621,
+          "averageMonthlyTurnover": 0.22545111497665046,
+          "costs": 7353.253685552904,
+          "averageNumberOfHoldings": 5.423076923076923
+        },
+        {
+          "series": "Version B: Optimizer-Based",
+          "pnl": 256987.17058609898,
+          "annReturn": 0.06769325757836597,
+          "cagr": 0.06769325757836597,
+          "annVol": 0.08492838301623426,
+          "maxDrawdown": -0.2701723475623653,
+          "sharpe": 0.8148395502824501,
+          "sortino": 1.1120386043504282,
+          "calmar": 0.2505558329308294,
+          "monthlyWinRate": 0.6866952789699571,
+          "turnover": 49.86376927544316,
+          "averageMonthlyTurnover": 0.25702973853321215,
+          "costs": 5391.613292507383,
+          "averageNumberOfHoldings": 9.010309278350515
+        },
+        {
+          "series": "SPY Buy & Hold",
+          "pnl": 645751.5554090787,
+          "annReturn": 0.10897325890779719,
+          "cagr": 0.10897325890779719,
+          "annVol": 0.1964802442016482,
+          "maxDrawdown": -0.5518944958060964,
+          "sharpe": 0.6252712122720151,
+          "sortino": 0.8821893760494407,
+          "calmar": 0.1974530634675582,
+          "monthlyWinRate": 0.6566523605150214
+        },
+        {
+          "series": "60/40 SPY/IEF",
+          "pnl": 381821.49396199634,
+          "annReturn": 0.08431364327206059,
+          "cagr": 0.08431364327206059,
+          "annVol": 0.11274917364895028,
+          "maxDrawdown": -0.31393577659800787,
+          "sharpe": 0.7744829948895674,
+          "sortino": 1.1100877808496885,
+          "calmar": 0.26856971889515957,
+          "monthlyWinRate": 0.6738197424892703
+        },
+        {
+          "series": "Static Equal-Weight ETF Basket",
+          "pnl": 273068.2732257391,
+          "annReturn": 0.07012772067808948,
+          "cagr": 0.07012772067808948,
+          "annVol": 0.09948030750621485,
+          "maxDrawdown": -0.29541918918559473,
+          "sharpe": 0.7328380959941712,
+          "sortino": 1.042180236241858,
+          "calmar": 0.23738376938687047,
+          "monthlyWinRate": 0.6351931330472103
+        },
+        {
+          "series": "Risk Parity SPY/TLT/GLD/DBC",
+          "pnl": 327319.1727167998,
+          "annReturn": 0.07763348870468056,
+          "cagr": 0.07763348870468056,
+          "annVol": 0.09396458250272577,
+          "maxDrawdown": -0.19894165288945265,
+          "sharpe": 0.848155576325974,
+          "sortino": 1.2127718956592282,
+          "calmar": 0.39023245045530874,
+          "monthlyWinRate": 0.6223175965665236
+        }
+      ],
+      "dataHealth": {
+        "priceCoverage": [
+          {
+            "series": "SPY",
+            "role": "ETF adjusted close",
+            "start": "1993-01-29",
+            "end": "2026-06-08",
+            "rows": 8396
+          },
+          {
+            "series": "QQQ",
+            "role": "ETF adjusted close",
+            "start": "1999-03-10",
+            "end": "2026-06-08",
+            "rows": 6854
+          },
+          {
+            "series": "IWM",
+            "role": "ETF adjusted close",
+            "start": "2000-05-26",
+            "end": "2026-06-08",
+            "rows": 6546
+          },
+          {
+            "series": "EFA",
+            "role": "ETF adjusted close",
+            "start": "2001-08-27",
+            "end": "2026-06-08",
+            "rows": 6231
+          },
+          {
+            "series": "EEM",
+            "role": "ETF adjusted close",
+            "start": "2003-04-14",
+            "end": "2026-06-08",
+            "rows": 5825
+          },
+          {
+            "series": "TLT",
+            "role": "ETF adjusted close",
+            "start": "2002-07-30",
+            "end": "2026-06-08",
+            "rows": 6003
+          },
+          {
+            "series": "IEF",
+            "role": "ETF adjusted close",
+            "start": "2002-07-30",
+            "end": "2026-06-08",
+            "rows": 6003
+          },
+          {
+            "series": "TIP",
+            "role": "ETF adjusted close",
+            "start": "2003-12-05",
+            "end": "2026-06-08",
+            "rows": 5661
+          },
+          {
+            "series": "LQD",
+            "role": "ETF adjusted close",
+            "start": "2002-07-30",
+            "end": "2026-06-08",
+            "rows": 6003
+          },
+          {
+            "series": "HYG",
+            "role": "ETF adjusted close",
+            "start": "2007-04-11",
+            "end": "2026-06-08",
+            "rows": 4821
+          },
+          {
+            "series": "DBC",
+            "role": "ETF adjusted close",
+            "start": "2006-02-06",
+            "end": "2026-06-08",
+            "rows": 5116
+          },
+          {
+            "series": "GLD",
+            "role": "ETF adjusted close",
+            "start": "2004-11-18",
+            "end": "2026-06-08",
+            "rows": 5421
+          },
+          {
+            "series": "SHY",
+            "role": "ETF adjusted close",
+            "start": "2002-07-30",
+            "end": "2026-06-08",
+            "rows": 6003
+          }
+        ],
+        "macroCoverage": [
+          {
+            "series": "USALOLITONOSTSAM",
+            "role": "CLI",
+            "start": "2000-01-01",
+            "end": "2024-01-01",
+            "rows": 289
+          },
+          {
+            "series": "T10Y3M",
+            "role": "YC",
+            "start": "1970-01-02",
+            "end": "2026-06-08",
+            "rows": 14122
+          },
+          {
+            "series": "BAMLH0A0HYM2",
+            "role": "CREDIT",
+            "start": "1996-12-31",
+            "end": "2026-06-08",
+            "rows": 6014
+          },
+          {
+            "series": "CPIAUCSL",
+            "role": "CPI",
+            "start": "2000-01-01",
+            "end": "2026-04-01",
+            "rows": 315
+          },
+          {
+            "series": "UNRATE",
+            "role": "UNRATE",
+            "start": "2000-01-01",
+            "end": "2026-05-01",
+            "rows": 316
+          }
+        ]
+      }
+    },
+    "strategy_3_pure_business_cycle_asset_rotation": {
+      "mode": "python-pure-business-cycle-asset-rotation",
+      "rows": {
+        "aligned": 5391,
+        "start": "2005-01-03",
+        "end": "2026-06-08",
+        "backtestStart": "2007-01-03",
+        "backtestEnd": "2026-06-08",
+        "bySymbol": {
+          "SPY": 8396,
+          "QQQ": 6854,
+          "HYG": 4821,
+          "LQD": 6003,
+          "TLT": 6003,
+          "SHY": 6003,
+          "DBC": 5116,
+          "GLD": 5421,
+          "IEF": 6003
+        },
+        "byMacroSeries": {
+          "USALOLITONOSTSAM": 289,
+          "T10Y3M": 14122,
+          "BAMLH0A0HYM2": 6014,
+          "CPIAUCSL": 315,
+          "UNRATE": 316
+        }
+      },
+      "latestRegime": {
+        "date": "2026-06-08",
+        "regime": "Slowdown",
+        "growthLevel": "High",
+        "growthDirection": "Falling",
+        "cliTrend": 0.0,
+        "cliMomentum": 0.0,
+        "unemployment": 4.3,
+        "cpiYoY": 0.036763146403842484,
+        "yieldCurve": 0.8650000095367432,
+        "turnover": 0.0,
+        "weights": {
+          "SPY": 0.25,
+          "QQQ": 0.0,
+          "HYG": 0.0,
+          "LQD": 0.0,
+          "TLT": 0.25,
+          "SHY": 0.25,
+          "DBC": 0.0,
+          "GLD": 0.25
+        }
+      },
+      "currentHoldings": null,
+      "performanceTable": [
+        {
+          "series": "Pure Business-Cycle Asset Rotation",
+          "pnl": 875046.8438754816,
+          "annReturn": 0.1243661775153706,
+          "cagr": 0.1243661775153706,
+          "annVol": 0.12181637305811258,
+          "maxDrawdown": -0.2637029071273399,
+          "sharpe": 1.0248258780711277,
+          "sortino": 1.4714171044758284,
+          "calmar": 0.47161473823007655,
+          "monthlyWinRate": 0.6695278969957081,
+          "turnover": 39.699999999999996,
+          "averageMonthlyTurnover": 0.16965811965811964,
+          "costs": 6947.966244301344,
+          "averageNumberOfHoldings": 3.6709401709401708
+        },
+        {
+          "series": "SPY Buy & Hold",
+          "pnl": 645751.5554090787,
+          "annReturn": 0.10897325890779719,
+          "cagr": 0.10897325890779719,
+          "annVol": 0.1964802442016482,
+          "maxDrawdown": -0.5518944958060964,
+          "sharpe": 0.6252712122720151,
+          "sortino": 0.8821893760494407,
+          "calmar": 0.1974530634675582,
+          "monthlyWinRate": 0.6566523605150214
+        },
+        {
+          "series": "60/40 SPY/IEF",
+          "pnl": 381821.49396199634,
+          "annReturn": 0.08431364327206059,
+          "cagr": 0.08431364327206059,
+          "annVol": 0.11274917364895028,
+          "maxDrawdown": -0.31393577659800787,
+          "sharpe": 0.7744829948895674,
+          "sortino": 1.1100877808496885,
+          "calmar": 0.26856971889515957,
+          "monthlyWinRate": 0.6738197424892703
+        },
+        {
+          "series": "Risk Parity SPY/TLT/GLD/DBC",
+          "pnl": 327319.1727167998,
+          "annReturn": 0.07763348870468056,
+          "cagr": 0.07763348870468056,
+          "annVol": 0.09396458250272577,
+          "maxDrawdown": -0.19894165288945265,
+          "sharpe": 0.848155576325974,
+          "sortino": 1.2127718956592282,
+          "calmar": 0.39023245045530874,
+          "monthlyWinRate": 0.6223175965665236
+        }
+      ],
+      "dataHealth": {
+        "priceCoverage": [
+          {
+            "series": "SPY",
+            "role": "ETF adjusted close",
+            "start": "1993-01-29",
+            "end": "2026-06-08",
+            "rows": 8396
+          },
+          {
+            "series": "QQQ",
+            "role": "ETF adjusted close",
+            "start": "1999-03-10",
+            "end": "2026-06-08",
+            "rows": 6854
+          },
+          {
+            "series": "HYG",
+            "role": "ETF adjusted close",
+            "start": "2007-04-11",
+            "end": "2026-06-08",
+            "rows": 4821
+          },
+          {
+            "series": "LQD",
+            "role": "ETF adjusted close",
+            "start": "2002-07-30",
+            "end": "2026-06-08",
+            "rows": 6003
+          },
+          {
+            "series": "TLT",
+            "role": "ETF adjusted close",
+            "start": "2002-07-30",
+            "end": "2026-06-08",
+            "rows": 6003
+          },
+          {
+            "series": "SHY",
+            "role": "ETF adjusted close",
+            "start": "2002-07-30",
+            "end": "2026-06-08",
+            "rows": 6003
+          },
+          {
+            "series": "DBC",
+            "role": "ETF adjusted close",
+            "start": "2006-02-06",
+            "end": "2026-06-08",
+            "rows": 5116
+          },
+          {
+            "series": "GLD",
+            "role": "ETF adjusted close",
+            "start": "2004-11-18",
+            "end": "2026-06-08",
+            "rows": 5421
+          },
+          {
+            "series": "IEF",
+            "role": "ETF adjusted close",
+            "start": "2002-07-30",
+            "end": "2026-06-08",
+            "rows": 6003
+          }
+        ],
+        "macroCoverage": [
+          {
+            "series": "USALOLITONOSTSAM",
+            "role": "CLI",
+            "start": "2000-01-01",
+            "end": "2024-01-01",
+            "rows": 289
+          },
+          {
+            "series": "T10Y3M",
+            "role": "YC",
+            "start": "1970-01-02",
+            "end": "2026-06-08",
+            "rows": 14122
+          },
+          {
+            "series": "BAMLH0A0HYM2",
+            "role": "CREDIT",
+            "start": "1996-12-31",
+            "end": "2026-06-08",
+            "rows": 6014
+          },
+          {
+            "series": "CPIAUCSL",
+            "role": "CPI",
+            "start": "2000-01-01",
+            "end": "2026-04-01",
+            "rows": 315
+          },
+          {
+            "series": "UNRATE",
+            "role": "UNRATE",
+            "start": "2000-01-01",
+            "end": "2026-05-01",
+            "rows": 316
+          }
+        ]
+      }
+    },
+    "strategy_4_blackrock_factor_replication": {
+      "mode": "python-blackrock-factor-replication",
+      "rows": {
+        "aligned": 5895,
+        "start": "2003-01-02",
+        "end": "2026-06-08",
+        "backtestStart": "2007-01-03",
+        "backtestEnd": "2026-06-08",
+        "firstFactorRebalance": "2010-05-28",
+        "bySymbol": {
+          "SPY": 8396,
+          "QQQ": 6854,
+          "TLT": 6003,
+          "IEF": 6003,
+          "TIP": 5661,
+          "LQD": 6003,
+          "HYG": 4821,
+          "DBC": 5116,
+          "GLD": 5421,
+          "SHY": 6003
+        }
+      },
+      "latestRegime": null,
+      "currentHoldings": null,
+      "performanceTable": [
+        {
+          "series": "BlackRock Factor Replication Portfolio",
+          "pnl": 266146.8986041248,
+          "annReturn": 0.06908648912180837,
+          "cagr": 0.06908648912180837,
+          "annVol": 0.0677969894506469,
+          "maxDrawdown": -0.1751653911708747,
+          "sharpe": 1.0204373170250471,
+          "sortino": 1.4524795675606132,
+          "calmar": 0.39440718660237034,
+          "monthlyWinRate": 0.6952789699570815,
+          "turnover": 9.70844221859766,
+          "averageMonthlyTurnover": 0.05004351659070959,
+          "costs": 1028.7880962886495,
+          "averageNumberOfHoldings": 8.52061855670103
+        },
+        {
+          "series": "SPY Buy & Hold",
+          "pnl": 645751.5554090787,
+          "annReturn": 0.10897325890779719,
+          "cagr": 0.10897325890779719,
+          "annVol": 0.1964802442016482,
+          "maxDrawdown": -0.5518944958060964,
+          "sharpe": 0.6252712122720151,
+          "sortino": 0.8821893760494407,
+          "calmar": 0.1974530634675582,
+          "monthlyWinRate": 0.6566523605150214
+        },
+        {
+          "series": "60/40 SPY/IEF",
+          "pnl": 381821.49396199634,
+          "annReturn": 0.08431364327206059,
+          "cagr": 0.08431364327206059,
+          "annVol": 0.11274917364895028,
+          "maxDrawdown": -0.31393577659800787,
+          "sharpe": 0.7744829948895674,
+          "sortino": 1.1100877808496885,
+          "calmar": 0.26856971889515957,
+          "monthlyWinRate": 0.6738197424892703
+        },
+        {
+          "series": "Risk Parity SPY/TLT/GLD/DBC",
+          "pnl": 327319.1727167998,
+          "annReturn": 0.07763348870468056,
+          "cagr": 0.07763348870468056,
+          "annVol": 0.09396458250272577,
+          "maxDrawdown": -0.19894165288945265,
+          "sharpe": 0.848155576325974,
+          "sortino": 1.2127718956592282,
+          "calmar": 0.39023245045530874,
+          "monthlyWinRate": 0.6223175965665236
+        }
+      ],
+      "dataHealth": {
+        "priceCoverage": [
+          {
+            "series": "SPY",
+            "role": "ETF adjusted close",
+            "start": "1993-01-29",
+            "end": "2026-06-08",
+            "rows": 8396
+          },
+          {
+            "series": "QQQ",
+            "role": "ETF adjusted close",
+            "start": "1999-03-10",
+            "end": "2026-06-08",
+            "rows": 6854
+          },
+          {
+            "series": "TLT",
+            "role": "ETF adjusted close",
+            "start": "2002-07-30",
+            "end": "2026-06-08",
+            "rows": 6003
+          },
+          {
+            "series": "IEF",
+            "role": "ETF adjusted close",
+            "start": "2002-07-30",
+            "end": "2026-06-08",
+            "rows": 6003
+          },
+          {
+            "series": "TIP",
+            "role": "ETF adjusted close",
+            "start": "2003-12-05",
+            "end": "2026-06-08",
+            "rows": 5661
+          },
+          {
+            "series": "LQD",
+            "role": "ETF adjusted close",
+            "start": "2002-07-30",
+            "end": "2026-06-08",
+            "rows": 6003
+          },
+          {
+            "series": "HYG",
+            "role": "ETF adjusted close",
+            "start": "2007-04-11",
+            "end": "2026-06-08",
+            "rows": 4821
+          },
+          {
+            "series": "DBC",
+            "role": "ETF adjusted close",
+            "start": "2006-02-06",
+            "end": "2026-06-08",
+            "rows": 5116
+          },
+          {
+            "series": "GLD",
+            "role": "ETF adjusted close",
+            "start": "2004-11-18",
+            "end": "2026-06-08",
+            "rows": 5421
+          },
+          {
+            "series": "SHY",
+            "role": "ETF adjusted close",
+            "start": "2002-07-30",
+            "end": "2026-06-08",
+            "rows": 6003
+          }
+        ]
+      }
+    }
+  },
+  "etfCache": [
+    {
+      "file": "data/etf_cache/BIL.json",
+      "rows": 4785,
+      "start": "2007-05-30",
+      "end": "2026-06-04",
+      "updatedUtc": "2026-06-04T17:56:28.439273+00:00"
+    },
+    {
+      "file": "data/etf_cache/DBC.json",
+      "rows": 5116,
+      "start": "2006-02-06",
+      "end": "2026-06-08",
+      "updatedUtc": "2026-06-10T05:25:54.256625+00:00"
+    },
+    {
+      "file": "data/etf_cache/EEM.json",
+      "rows": 5825,
+      "start": "2003-04-14",
+      "end": "2026-06-08",
+      "updatedUtc": "2026-06-10T04:16:05.626142+00:00"
+    },
+    {
+      "file": "data/etf_cache/EFA.json",
+      "rows": 6231,
+      "start": "2001-08-27",
+      "end": "2026-06-08",
+      "updatedUtc": "2026-06-10T04:16:05.378849+00:00"
+    },
+    {
+      "file": "data/etf_cache/GLD.json",
+      "rows": 5421,
+      "start": "2004-11-18",
+      "end": "2026-06-08",
+      "updatedUtc": "2026-06-10T04:16:06.561439+00:00"
+    },
+    {
+      "file": "data/etf_cache/HYG.json",
+      "rows": 4821,
+      "start": "2007-04-11",
+      "end": "2026-06-08",
+      "updatedUtc": "2026-06-10T04:16:05.848022+00:00"
+    },
+    {
+      "file": "data/etf_cache/IEF.json",
+      "rows": 6003,
+      "start": "2002-07-30",
+      "end": "2026-06-08",
+      "updatedUtc": "2026-06-10T04:16:06.354358+00:00"
+    },
+    {
+      "file": "data/etf_cache/IWM.json",
+      "rows": 6546,
+      "start": "2000-05-26",
+      "end": "2026-06-08",
+      "updatedUtc": "2026-06-10T04:16:05.124623+00:00"
+    },
+    {
+      "file": "data/etf_cache/LQD.json",
+      "rows": 6003,
+      "start": "2002-07-30",
+      "end": "2026-06-08",
+      "updatedUtc": "2026-06-10T05:25:54.071568+00:00"
+    },
+    {
+      "file": "data/etf_cache/QQQ.json",
+      "rows": 6854,
+      "start": "1999-03-10",
+      "end": "2026-06-08",
+      "updatedUtc": "2026-06-10T04:16:04.841153+00:00"
+    },
+    {
+      "file": "data/etf_cache/SHY.json",
+      "rows": 6003,
+      "start": "2002-07-30",
+      "end": "2026-06-08",
+      "updatedUtc": "2026-06-10T04:16:06.836935+00:00"
+    },
+    {
+      "file": "data/etf_cache/SPY.json",
+      "rows": 8396,
+      "start": "1993-01-29",
+      "end": "2026-06-08",
+      "updatedUtc": "2026-06-10T04:16:04.544863+00:00"
+    },
+    {
+      "file": "data/etf_cache/TIP.json",
+      "rows": 5661,
+      "start": "2003-12-05",
+      "end": "2026-06-08",
+      "updatedUtc": "2026-06-10T05:25:53.781119+00:00"
+    },
+    {
+      "file": "data/etf_cache/TLT.json",
+      "rows": 6003,
+      "start": "2002-07-30",
+      "end": "2026-06-08",
+      "updatedUtc": "2026-06-10T04:16:06.104677+00:00"
+    },
+    {
+      "file": "data/etf_cache/VNQ.json",
+      "rows": 5455,
+      "start": "2004-09-29",
+      "end": "2026-06-04",
+      "updatedUtc": "2026-06-04T17:56:28.017938+00:00"
+    },
+    {
+      "file": "data/etf_cache/^IRX.json",
+      "rows": 14122,
+      "start": "1970-01-02",
+      "end": "2026-06-08",
+      "updatedUtc": "2026-06-10T05:12:41.073505+00:00"
+    },
+    {
+      "file": "data/etf_cache/^TNX.json",
+      "rows": 14129,
+      "start": "1970-01-02",
+      "end": "2026-06-08",
+      "updatedUtc": "2026-06-10T05:12:40.774573+00:00"
+    }
+  ],
+  "fredCache": [
+    {
+      "file": "data/fred_cache/BAMLH0A0HYM2-full.csv",
+      "rows": 793,
+      "start": "2023-06-12",
+      "end": "2026-06-08",
+      "updatedUtc": "2026-06-10T05:14:29.502824+00:00"
+    },
+    {
+      "file": "data/fred_cache/BAMLH0A0HYM2.csv",
+      "rows": 6014,
+      "start": "1996-12-31",
+      "end": "2026-06-08",
+      "updatedUtc": "2026-06-10T05:57:59.252239+00:00"
+    },
+    {
+      "file": "data/fred_cache/CPIAUCSL.csv",
+      "rows": 316,
+      "start": "2000-01-01",
+      "end": "2026-04-01",
+      "updatedUtc": "2026-06-10T05:03:33.814443+00:00"
+    },
+    {
+      "file": "data/fred_cache/DGS10.csv",
+      "rows": 14129,
+      "start": "1970-01-02",
+      "end": "2026-06-08",
+      "updatedUtc": "2026-06-10T05:56:35.265879+00:00"
+    },
+    {
+      "file": "data/fred_cache/T10Y3M.csv",
+      "rows": 14122,
+      "start": "1970-01-02",
+      "end": "2026-06-08",
+      "updatedUtc": "2026-06-10T05:12:41.110388+00:00"
+    },
+    {
+      "file": "data/fred_cache/UNRATE.csv",
+      "rows": 317,
+      "start": "2000-01-01",
+      "end": "2026-05-01",
+      "updatedUtc": "2026-06-10T05:02:38.218600+00:00"
+    },
+    {
+      "file": "data/fred_cache/USALOLITONOSTSAM.csv",
+      "rows": 289,
+      "start": "2000-01-01",
+      "end": "2024-01-01",
+      "updatedUtc": "2026-06-10T05:03:32.562956+00:00"
+    }
+  ],
+  "limitationsFile": "DATA_LIMITATIONS.md"
+}

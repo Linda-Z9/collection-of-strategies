@@ -13,6 +13,10 @@ import plotly.graph_objects as go
 import streamlit as st
 
 from strategies.defensive_trend_risk_parity import run_backtest as run_defensive_trend_risk_parity
+from strategies.regime_aware_etf_momentum import run_backtest as run_regime_aware_etf_momentum
+from strategies.dynamic_macro_factor_allocation import run_backtest as run_dynamic_macro_factor_allocation
+from strategies.pure_business_cycle_asset_rotation import run_backtest as run_pure_business_cycle_asset_rotation
+from strategies.blackrock_factor_replication import run_backtest as run_blackrock_factor_replication
 from strategies.crypto_trend_rotation import run_backtest as run_crypto_trend_rotation
 from strategies.funding_carry import METADATA as FUNDING_CARRY_METADATA
 from strategies.funding_carry import run_backtest as run_funding_carry
@@ -105,6 +109,109 @@ STRATEGIES = [
             "Inverse-volatility weights can concentrate in assets whose recent volatility is temporarily suppressed.",
         ],
         "sources": ["Yahoo daily adjusted ETF history", "Faber tactical allocation research", "AQR time-series momentum", "Risk parity and risk-budgeting research"],
+    },
+    {
+        "id": "regime-aware-etf-momentum",
+        "name": "Regime-Aware ETF Momentum",
+        "group": "ETF",
+        "type": "Macro regime filter plus ETF momentum",
+        "difficulty": "Medium",
+        "data_burden": "Light-medium",
+        "runtime": "Monthly",
+        "capital_need": "Low-medium",
+        "best_role": "Tactical multi-asset sleeve",
+        "base_return": 0.10,
+        "base_vol": 0.12,
+        "tail_risk": 37,
+        "carry_bias": 0.35,
+        "public": True,
+        "description": "Classify the macro cycle with the OECD U.S. CLI and stress indicators, then select the strongest eligible liquid ETFs using cross-sectional momentum.",
+        "does": "It assigns each month to Recovery, Expansion, Slowdown, or Contraction, applies a yield-curve, credit-spread, and unemployment stress override, then holds the top-ranked ETFs for that regime with trend and portfolio-volatility risk controls.",
+        "signals": [
+            "OECD U.S. CLI versus its 12-month average and its 3-month change",
+            "10Y-minus-3M curve, high-yield OAS change, and unemployment change stress override",
+            "Equal blend of 6-month momentum rank and 12-month momentum rank skipping the latest month",
+            "200-day moving-average haircut and 60-day portfolio volatility target",
+        ],
+        "checklist": [
+            "Fetch and cache Yahoo adjusted closes for SPY, QQQ, IWM, EFA, EEM, HYG, TLT, IEF, GLD, and SHY.",
+            "Fetch and cache FRED CLI, yield curve, high-yield OAS, CPI, and unemployment series.",
+            "Lag monthly macro observations one month and classify the macro regime.",
+            "Rank the regime-eligible ETF set and hold the top two or three at month-end.",
+            "Apply trend haircut, 40% position cap, volatility scaling, and 5 bps traded-notional cost.",
+        ],
+        "risks": [
+            "Published macro data is revised, so a production-grade test should use vintage data from ALFRED.",
+            "Monthly regime changes can lag fast market shocks.",
+            "Momentum and trend filters can whipsaw during rapid reversals.",
+        ],
+        "sources": ["Yahoo daily adjusted ETF history", "FRED OECD CLI", "FRED Treasury curve and ICE BofA High Yield OAS", "FRED CPI and unemployment"],
+    },
+    {
+        "id": "dynamic-macro-factor-allocation",
+        "name": "Dynamic Macro Factor Allocation",
+        "group": "ETF",
+        "type": "Regime-aware factor replication",
+        "difficulty": "Advanced",
+        "data_burden": "Medium",
+        "runtime": "Monthly",
+        "capital_need": "Medium",
+        "best_role": "Institutional multi-factor sleeve",
+        "base_return": 0.09,
+        "base_vol": 0.10,
+        "tail_risk": 38,
+        "carry_bias": 0.30,
+        "public": True,
+        "description": "Estimate rolling ETF factor exposures and compare rule-based versus optimized regime-target allocations.",
+        "does": "It maps changing macro-factor preferences into ETF weights using both supplied regime portfolios and a constrained NumPy optimizer.",
+        "signals": ["36-month ETF factor regressions", "Four-state macro regime", "Growth, duration, inflation, credit, and commodity targets"],
+        "checklist": ["Load cached ETF and macro history.", "Estimate rolling factor matrices.", "Run rule and optimizer versions.", "Apply risk controls and compare benchmarks."],
+        "risks": ["Correlated factor proxies can destabilize betas.", "Optimizer begins after sufficient HYG history.", "Macro histories are revised."],
+        "sources": ["Yahoo adjusted ETF history", "FRED macro cache", "BlackRock Factors-to-Assets research"],
+    },
+    {
+        "id": "pure-business-cycle-rotation",
+        "name": "Pure Business-Cycle Asset Rotation",
+        "group": "ETF",
+        "type": "CLI business-cycle rotation",
+        "difficulty": "Medium",
+        "data_burden": "Light",
+        "runtime": "Monthly",
+        "capital_need": "Low-medium",
+        "best_role": "Tactical cycle sleeve",
+        "base_return": 0.10,
+        "base_vol": 0.12,
+        "tail_risk": 40,
+        "carry_bias": 0.25,
+        "public": True,
+        "description": "Rotate among equities, credit, Treasuries, gold, and cash using CLI growth level and direction.",
+        "does": "It applies the supplied Recovery, Expansion, Slowdown, and Contraction portfolios at each month-end.",
+        "signals": ["CLI versus 12-month average", "CLI three-month direction", "Monthly regime transitions"],
+        "checklist": ["Load cached ETF and CLI data.", "Classify the pure growth cycle.", "Apply fixed regime weights.", "Compare against SPY, 60/40, and risk parity."],
+        "risks": ["Current CLI is stale.", "Historical FRED data is revised.", "Weights are a paper-inspired interpretation."],
+        "sources": ["Yahoo adjusted ETF history", "FRED OECD CLI", "JPM Growth Cycle research"],
+    },
+    {
+        "id": "blackrock-factor-replication",
+        "name": "BlackRock Factor Replication Portfolio",
+        "group": "ETF",
+        "type": "Static-target factor replication",
+        "difficulty": "Advanced",
+        "data_burden": "Medium",
+        "runtime": "Monthly",
+        "capital_need": "Medium",
+        "best_role": "Institutional factor sleeve",
+        "base_return": 0.08,
+        "base_vol": 0.08,
+        "tail_risk": 30,
+        "carry_bias": 0.20,
+        "public": True,
+        "description": "Replicate a fixed target mix of growth, duration, inflation, credit, and commodity factors with ETFs.",
+        "does": "It estimates rolling ETF betas and solves a long-only, fully invested, 30%-capped factor-matching portfolio monthly.",
+        "signals": ["36-month ETF factor regressions", "Static institutional factor target", "Turnover and concentration penalties"],
+        "checklist": ["Build ETF factor proxies.", "Estimate rolling exposure matrix.", "Optimize ETF weights.", "Export factor and risk analytics."],
+        "risks": ["Proxy factors are correlated.", "Factor targets use raw beta units.", "Optimizer starts after 36 months of HYG history."],
+        "sources": ["Yahoo adjusted ETF history", "BlackRock Factors-to-Assets research"],
     },
 ]
 
@@ -317,6 +424,38 @@ def load_public_payload(strategy_id, view_mode, capital, lookback, symbol):
         except Exception as error:
             return None, str(error)
 
+    if strategy_id == "regime-aware-etf-momentum":
+        if view_mode == "Live":
+            return None, "This ETF strategy is monthly and backtest-only for now."
+        try:
+            return run_regime_aware_etf_momentum(capital=capital), None
+        except Exception as error:
+            return None, str(error)
+
+    if strategy_id == "dynamic-macro-factor-allocation":
+        if view_mode == "Live":
+            return None, "This factor strategy is monthly and backtest-only for now."
+        try:
+            return run_dynamic_macro_factor_allocation(capital=capital), None
+        except Exception as error:
+            return None, str(error)
+
+    if strategy_id == "pure-business-cycle-rotation":
+        if view_mode == "Live":
+            return None, "This cycle strategy is monthly and backtest-only for now."
+        try:
+            return run_pure_business_cycle_asset_rotation(capital=capital), None
+        except Exception as error:
+            return None, str(error)
+
+    if strategy_id == "blackrock-factor-replication":
+        if view_mode == "Live":
+            return None, "This factor strategy is monthly and backtest-only for now."
+        try:
+            return run_blackrock_factor_replication(capital=capital), None
+        except Exception as error:
+            return None, str(error)
+
     return None, None
 
 
@@ -496,6 +635,126 @@ def benchmark_table(payload):
     )
 
 
+def regime_momentum_analytics(payload):
+    metrics = payload.get("metrics") or {}
+    items = [
+        ("CAGR", format_pct(metrics.get("cagr"))),
+        ("Sortino", "-" if metrics.get("sortino") is None else f"{float(metrics['sortino']):.2f}"),
+        ("Calmar", "-" if metrics.get("calmar") is None else f"{float(metrics['calmar']):.2f}"),
+        ("Monthly Win Rate", format_pct(metrics.get("monthlyWinRate"))),
+        ("Total Turnover", "-" if metrics.get("turnover") is None else f"{float(metrics['turnover']):.2f}x"),
+        ("Avg. Holdings", "-" if metrics.get("averageNumberOfHoldings") is None else f"{float(metrics['averageNumberOfHoldings']):.1f}"),
+    ]
+    columns = st.columns(3)
+    for index, (label, value) in enumerate(items):
+        with columns[index % 3]:
+            info_card(label, value)
+
+    analytics = payload.get("analytics") or {}
+    drawdown = pd.DataFrame(analytics.get("drawdown") or [])
+    rolling = pd.DataFrame(analytics.get("rolling12mSharpe") or [])
+    left, right = st.columns(2)
+    with left:
+        st.markdown("#### Drawdown")
+        if drawdown.empty:
+            st.info("No drawdown series available.")
+        else:
+            drawdown["date"] = pd.to_datetime(drawdown["date"])
+            fig = go.Figure(go.Scatter(x=drawdown["date"], y=drawdown["value"], fill="tozeroy", name="Drawdown"))
+            fig.update_layout(height=330, template="plotly_white", yaxis_tickformat=".0%", margin=dict(l=20, r=20, t=20, b=20))
+            st.plotly_chart(fig, use_container_width=True)
+    with right:
+        st.markdown("#### Rolling 12-Month Sharpe")
+        if rolling.empty:
+            st.info("No rolling Sharpe series available.")
+        else:
+            rolling["date"] = pd.to_datetime(rolling["date"])
+            fig = go.Figure(go.Scatter(x=rolling["date"], y=rolling["value"], name="Rolling Sharpe"))
+            fig.add_hline(y=0, line_dash="dash", line_color="gray")
+            fig.update_layout(height=330, template="plotly_white", margin=dict(l=20, r=20, t=20, b=20))
+            st.plotly_chart(fig, use_container_width=True)
+
+    st.markdown("#### Regime-by-Regime Returns")
+    regimes = pd.DataFrame(analytics.get("regimeReturns") or [])
+    if regimes.empty:
+        st.info("No regime return analytics available.")
+    else:
+        st.dataframe(
+            regimes,
+            use_container_width=True,
+            hide_index=True,
+            column_config={
+                "annualizedReturn": st.column_config.NumberColumn(format="%.2f"),
+                "annualizedVol": st.column_config.NumberColumn(format="%.2f"),
+                "winRate": st.column_config.NumberColumn(format="%.2f"),
+            },
+        )
+
+
+def render_new_research_strategy(payload):
+    rows = payload.get("rows") or {}
+    latest_regime = payload.get("latestRegime") or {}
+    top = st.columns(4)
+    with top[0]:
+        info_card("CAGR", format_pct((payload.get("metrics") or {}).get("cagr")))
+    with top[1]:
+        info_card("Sharpe", f"{float((payload.get('metrics') or {}).get('sharpe', 0)):.2f}")
+    with top[2]:
+        info_card("Latest Regime", latest_regime.get("regime", "Static factor target"))
+    with top[3]:
+        info_card("Backtest Window", f"{rows.get('backtestStart', '-')} to {rows.get('backtestEnd', '-')}")
+
+    equity_chart({"points": payload.get("points"), "payload": payload}, f"{payload.get('strategy')} equity curve")
+    left, right = st.columns(2)
+    with left:
+        st.markdown("#### Current Recommended Allocation")
+        allocation = payload.get("currentRecommendedAllocation") or payload.get("latestWeights") or {}
+        frame = pd.DataFrame(
+            [{"Symbol": symbol, "Weight": weight} for symbol, weight in allocation.items() if weight > 0.0001]
+        )
+        st.dataframe(frame, use_container_width=True, hide_index=True)
+    with right:
+        st.markdown("#### Performance Table")
+        performance = pd.DataFrame(payload.get("performanceTable") or [])
+        if performance.empty:
+            benchmark_table(payload)
+        else:
+            keep = [
+                column
+                for column in ["series", "cagr", "annVol", "maxDrawdown", "sharpe", "sortino", "calmar"]
+                if column in performance.columns
+            ]
+            st.dataframe(performance[keep], use_container_width=True, hide_index=True)
+
+    factor_exposure = payload.get("latestFactorExposure") or (payload.get("optimized") or {}).get("latestFactorExposure")
+    risk_contribution = payload.get("riskContribution") or (payload.get("optimized") or {}).get("riskContribution")
+    if factor_exposure or risk_contribution:
+        factor_col, risk_col = st.columns(2)
+        with factor_col:
+            st.markdown("#### Latest Factor Exposure")
+            factor_rows = [
+                {"Factor": key, "Exposure": value}
+                for key, value in (factor_exposure or {}).items()
+                if key != "date"
+            ]
+            st.dataframe(pd.DataFrame(factor_rows), use_container_width=True, hide_index=True)
+        with risk_col:
+            st.markdown("#### Risk Contribution")
+            st.dataframe(pd.DataFrame(risk_contribution or []), use_container_width=True, hide_index=True)
+
+    for limitation in payload.get("dataLimitations") or []:
+        st.caption(f"Data limitation: {limitation}")
+
+
+def load_strategies_one_to_four(capital):
+    return {
+        "Strategy 1 - Regime-Aware ETF Momentum": run_regime_aware_etf_momentum(capital=capital),
+        "Strategy 2 - Dynamic Macro Factor Allocation": run_dynamic_macro_factor_allocation(capital=capital),
+        "Strategy 3 - Pure Business-Cycle Asset Rotation": run_pure_business_cycle_asset_rotation(capital=capital),
+        "Strategy 4 - BlackRock Factor Replication": run_blackrock_factor_replication(capital=capital),
+    }
+
+
 def comparison_table(capital, lookback, fee_tier, risk_mode):
     rows = []
     for strategy in STRATEGIES:
@@ -621,6 +880,14 @@ with top_right:
         info_card("Equity cap", format_pct(latest.get("equityCap")))
         info_card("BIL allocation", format_pct(latest.get("cashAllocation")))
         info_card("Backtest window", f"{rows.get('backtestStart', '-')} to {rows.get('backtestEnd', '-')}")
+    elif selected_id == "regime-aware-etf-momentum" and payload.get("latestRegime"):
+        latest = payload["latestRegime"]
+        rows = payload.get("rows", {})
+        regime = f"{latest.get('regime', '-')}{' (stress override)' if latest.get('stressOverride') else ''}"
+        info_card("Macro Regime", regime)
+        info_card("60-day vol", format_pct(latest.get("realizedVol60d")))
+        info_card("Cash allocation", format_pct(latest.get("cashAllocation")))
+        info_card("Backtest window", f"{rows.get('backtestStart', '-')} to {rows.get('backtestEnd', '-')}")
     elif payload:
         st.json(
             {
@@ -693,6 +960,36 @@ if selected_id == "risk-parity-etf" and result.get("payload"):
         )
         st.dataframe(weights, use_container_width=True, hide_index=True)
 
+if selected_id == "regime-aware-etf-momentum" and result.get("payload"):
+    payload = result["payload"]
+    benchmark_table(payload)
+    st.markdown("#### Current Holdings")
+    holdings = pd.DataFrame(payload.get("currentHoldings") or [])
+    if holdings.empty:
+        st.info("No ETFs are currently selected.")
+    else:
+        st.dataframe(
+            holdings,
+            use_container_width=True,
+            hide_index=True,
+            column_config={
+                "weight": st.column_config.NumberColumn(format="%.2f"),
+                "score": st.column_config.NumberColumn(format="%.2f"),
+                "momentum6m": st.column_config.NumberColumn(format="%.2f"),
+                "momentum12mSkip1m": st.column_config.NumberColumn(format="%.2f"),
+            },
+        )
+    regime_momentum_analytics(payload)
+    st.markdown("#### Data Coverage and Sources")
+    health = payload.get("dataHealth") or {}
+    coverage = pd.DataFrame((health.get("macroCoverage") or []) + (health.get("priceCoverage") or []))
+    if not coverage.empty:
+        st.dataframe(coverage, use_container_width=True, hide_index=True)
+    if health.get("creditSourceMonths"):
+        st.caption(f"Credit source months: {health['creditSourceMonths']}")
+    for note in health.get("sourceNotes") or []:
+        st.caption(note)
+
 with st.expander("Strategy Details", expanded=True):
     render_lists(selected)
 
@@ -716,3 +1013,43 @@ st.download_button("Download comparison CSV", csv, "collection-strategy-dashboar
 
 with st.expander("Raw Result Payload"):
     st.json(result.get("payload") or result)
+
+research_tab, limitations_tab = st.tabs(["Strategies 1-4 Research", "Strategies 1-4 Data Limitations"])
+with research_tab:
+    st.markdown("### Institutional Macro and Factor Strategies")
+    st.caption("Dedicated real-data comparison tab for the four newly implemented ETF strategies.")
+    if st.button("Load / Refresh Strategies 1-4", key="load_strategies_1_4"):
+        with st.spinner("Running four stored-data backtests..."):
+            try:
+                st.session_state.strategies_1_4_payloads = load_strategies_one_to_four(capital)
+                st.session_state.strategies_1_4_error = None
+            except Exception as error:
+                st.session_state.strategies_1_4_error = str(error)
+    if st.session_state.get("strategies_1_4_error"):
+        st.error(st.session_state.strategies_1_4_error)
+    research_payloads = st.session_state.get("strategies_1_4_payloads") or {}
+    if not research_payloads:
+        st.info("Click Load / Refresh Strategies 1-4 to run the dedicated comparison.")
+    else:
+        summary_rows = []
+        for label, research_payload in research_payloads.items():
+            research_metrics = research_payload.get("metrics") or {}
+            summary_rows.append(
+                {
+                    "Strategy": label,
+                    "CAGR": research_metrics.get("cagr"),
+                    "Volatility": research_metrics.get("annVol"),
+                    "Max Drawdown": research_metrics.get("maxDrawdown"),
+                    "Sharpe": research_metrics.get("sharpe"),
+                }
+            )
+        st.dataframe(pd.DataFrame(summary_rows), use_container_width=True, hide_index=True)
+        chosen = st.selectbox("Detailed strategy", list(research_payloads), key="new_strategy_detail")
+        render_new_research_strategy(research_payloads[chosen])
+
+with limitations_tab:
+    st.markdown("### Known Data and Modeling Limitations")
+    limitations_file = os.path.join(ROOT, "DATA_LIMITATIONS.md")
+    if os.path.exists(limitations_file):
+        with open(limitations_file, "r", encoding="utf-8") as handle:
+            st.markdown(handle.read())

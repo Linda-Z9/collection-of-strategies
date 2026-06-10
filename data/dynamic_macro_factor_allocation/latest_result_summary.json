@@ -1,0 +1,134 @@
+{
+  "updatedAt": "2026-06-10T05:57:58.762127+00:00",
+  "rows": {
+    "aligned": 5895,
+    "start": "2003-01-02",
+    "end": "2026-06-08",
+    "backtestStart": "2007-01-03",
+    "backtestEnd": "2026-06-08",
+    "bySymbol": {
+      "SPY": 8396,
+      "QQQ": 6854,
+      "IWM": 6546,
+      "EFA": 6231,
+      "EEM": 5825,
+      "TLT": 6003,
+      "IEF": 6003,
+      "TIP": 5661,
+      "LQD": 6003,
+      "HYG": 4821,
+      "DBC": 5116,
+      "GLD": 5421,
+      "SHY": 6003
+    },
+    "byMacroSeries": {
+      "USALOLITONOSTSAM": 289,
+      "T10Y3M": 14122,
+      "BAMLH0A0HYM2": 6014,
+      "CPIAUCSL": 315,
+      "UNRATE": 316
+    }
+  },
+  "performanceTable": [
+    {
+      "series": "Version A: Rule-Based",
+      "pnl": 506200.8574778837,
+      "annReturn": 0.0971938279797997,
+      "cagr": 0.0971938279797997,
+      "annVol": 0.1088097157598892,
+      "maxDrawdown": -0.24575478629420533,
+      "sharpe": 0.9082833756085368,
+      "sortino": 1.2760356819762224,
+      "calmar": 0.3954910886799336,
+      "monthlyWinRate": 0.6609442060085837,
+      "turnover": 52.75556090453621,
+      "averageMonthlyTurnover": 0.22545111497665046,
+      "costs": 7353.253685552904,
+      "averageNumberOfHoldings": 5.423076923076923
+    },
+    {
+      "series": "Version B: Optimizer-Based",
+      "pnl": 256987.17058609898,
+      "annReturn": 0.06769325757836597,
+      "cagr": 0.06769325757836597,
+      "annVol": 0.08492838301623426,
+      "maxDrawdown": -0.2701723475623653,
+      "sharpe": 0.8148395502824501,
+      "sortino": 1.1120386043504282,
+      "calmar": 0.2505558329308294,
+      "monthlyWinRate": 0.6866952789699571,
+      "turnover": 49.86376927544316,
+      "averageMonthlyTurnover": 0.25702973853321215,
+      "costs": 5391.613292507383,
+      "averageNumberOfHoldings": 9.010309278350515
+    },
+    {
+      "series": "SPY Buy & Hold",
+      "pnl": 645751.5554090787,
+      "annReturn": 0.10897325890779719,
+      "cagr": 0.10897325890779719,
+      "annVol": 0.1964802442016482,
+      "maxDrawdown": -0.5518944958060964,
+      "sharpe": 0.6252712122720151,
+      "sortino": 0.8821893760494407,
+      "calmar": 0.1974530634675582,
+      "monthlyWinRate": 0.6566523605150214
+    },
+    {
+      "series": "60/40 SPY/IEF",
+      "pnl": 381821.49396199634,
+      "annReturn": 0.08431364327206059,
+      "cagr": 0.08431364327206059,
+      "annVol": 0.11274917364895028,
+      "maxDrawdown": -0.31393577659800787,
+      "sharpe": 0.7744829948895674,
+      "sortino": 1.1100877808496885,
+      "calmar": 0.26856971889515957,
+      "monthlyWinRate": 0.6738197424892703
+    },
+    {
+      "series": "Static Equal-Weight ETF Basket",
+      "pnl": 273068.2732257391,
+      "annReturn": 0.07012772067808948,
+      "cagr": 0.07012772067808948,
+      "annVol": 0.09948030750621485,
+      "maxDrawdown": -0.29541918918559473,
+      "sharpe": 0.7328380959941712,
+      "sortino": 1.042180236241858,
+      "calmar": 0.23738376938687047,
+      "monthlyWinRate": 0.6351931330472103
+    },
+    {
+      "series": "Risk Parity SPY/TLT/GLD/DBC",
+      "pnl": 327319.1727167998,
+      "annReturn": 0.07763348870468056,
+      "cagr": 0.07763348870468056,
+      "annVol": 0.09396458250272577,
+      "maxDrawdown": -0.19894165288945265,
+      "sharpe": 0.848155576325974,
+      "sortino": 1.2127718956592282,
+      "calmar": 0.39023245045530874,
+      "monthlyWinRate": 0.6223175965665236
+    }
+  ],
+  "latestRegime": {
+    "date": "2026-06-08",
+    "regime": "Slowdown",
+    "stressOverride": false
+  },
+  "currentRecommendedAllocation": {
+    "SPY": 0.04164273211580748,
+    "QQQ": 0.11199673366228573,
+    "IWM": 0.004770692039731014,
+    "EFA": 0.0,
+    "EEM": 0.0,
+    "TLT": 0.2861659717625953,
+    "IEF": 0.0,
+    "TIP": 0.0,
+    "LQD": 0.10675039684465129,
+    "HYG": 0.15534355691293714,
+    "DBC": 0.28731091808790943,
+    "GLD": 0.0,
+    "SHY": 0.0060189985740828
+  }
+}

@@ -1,0 +1,65 @@
+{
+  "updatedAt": "2026-06-10T05:58:53.692791+00:00",
+  "rows": {
+    "aligned": 5895,
+    "start": "2003-01-02",
+    "end": "2026-06-08",
+    "backtestStart": "2007-01-03",
+    "backtestEnd": "2026-06-08",
+    "firstFactorRebalance": "2010-05-28",
+    "bySymbol": {
+      "SPY": 8396,
+      "QQQ": 6854,
+      "TLT": 6003,
+      "IEF": 6003,
+      "TIP": 5661,
+      "LQD": 6003,
+      "HYG": 4821,
+      "DBC": 5116,
+      "GLD": 5421,
+      "SHY": 6003
+    }
+  },
+  "metrics": {
+    "pnl": 266146.8986041248,
+    "annReturn": 0.06908648912180837,
+    "cagr": 0.06908648912180837,
+    "annVol": 0.0677969894506469,
+    "maxDrawdown": -0.1751653911708747,
+    "sharpe": 1.0204373170250471,
+    "sortino": 1.4524795675606132,
+    "calmar": 0.39440718660237034,
+    "monthlyWinRate": 0.6952789699570815,
+    "turnover": 9.70844221859766,
+    "averageMonthlyTurnover": 0.05004351659070959,
+    "costs": 1028.7880962886495,
+    "averageNumberOfHoldings": 8.52061855670103
+  },
+  "latestWeights": {
+    "SPY": 0.17244467053528456,
+    "QQQ": 0.09161493989128922,
+    "TLT": 0.18029943509090487,
+    "IEF": 0.0,
+    "TIP": 0.0,
+    "LQD": 0.10094266613156697,
+    "HYG": 0.26433914470020653,
+    "DBC": 0.12599635066670684,
+    "GLD": 0.0,
+    "SHY": 0.06436279298404113
+  },
+  "latestFactorExposure": {
+    "date": "2026-06-08",
+    "Growth": 0.30987035726643125,
+    "Duration": 0.25543642512827547,
+    "Inflation": 0.19462705387061133,
+    "Credit": 0.15481895364386153,
+    "Commodity": 0.11105977668804314
+  },
+  "dataLimitations": [
+    "The first valid 36-month factor matrix is May 2010 because HYG begins in April 2007; the portfolio remains in SHY before then.",
+    "ETF proxy factors are correlated, so regression betas and optimized weights can be unstable.",
+    "Factor targets are research assumptions expressed against raw ETF regression betas, not normalized institutional factor units.",
+    "The NumPy projected-gradient optimizer approximates the constrained quadratic problem without a dedicated QP solver.",
+    "Yahoo adjusted-close histories may be revised and include fund-specific tracking differences and fees."
+  ]
+}

@@ -1,0 +1,125 @@
+{
+  "updatedAt": "2026-06-10T05:56:35.139431+00:00",
+  "strategy": "Regime-Aware ETF Momentum",
+  "priceCoverage": [
+    {
+      "series": "SPY",
+      "role": "ETF adjusted close",
+      "start": "1993-01-29",
+      "end": "2026-06-08",
+      "rows": 8396
+    },
+    {
+      "series": "QQQ",
+      "role": "ETF adjusted close",
+      "start": "1999-03-10",
+      "end": "2026-06-08",
+      "rows": 6854
+    },
+    {
+      "series": "IWM",
+      "role": "ETF adjusted close",
+      "start": "2000-05-26",
+      "end": "2026-06-08",
+      "rows": 6546
+    },
+    {
+      "series": "EFA",
+      "role": "ETF adjusted close",
+      "start": "2001-08-27",
+      "end": "2026-06-08",
+      "rows": 6231
+    },
+    {
+      "series": "EEM",
+      "role": "ETF adjusted close",
+      "start": "2003-04-14",
+      "end": "2026-06-08",
+      "rows": 5825
+    },
+    {
+      "series": "HYG",
+      "role": "ETF adjusted close",
+      "start": "2007-04-11",
+      "end": "2026-06-08",
+      "rows": 4821
+    },
+    {
+      "series": "TLT",
+      "role": "ETF adjusted close",
+      "start": "2002-07-30",
+      "end": "2026-06-08",
+      "rows": 6003
+    },
+    {
+      "series": "IEF",
+      "role": "ETF adjusted close",
+      "start": "2002-07-30",
+      "end": "2026-06-08",
+      "rows": 6003
+    },
+    {
+      "series": "GLD",
+      "role": "ETF adjusted close",
+      "start": "2004-11-18",
+      "end": "2026-06-08",
+      "rows": 5421
+    },
+    {
+      "series": "SHY",
+      "role": "ETF adjusted close",
+      "start": "2002-07-30",
+      "end": "2026-06-08",
+      "rows": 6003
+    }
+  ],
+  "macroCoverage": [
+    {
+      "series": "USALOLITONOSTSAM",
+      "role": "CLI",
+      "start": "2000-01-01",
+      "end": "2024-01-01",
+      "rows": 289
+    },
+    {
+      "series": "T10Y3M",
+      "role": "YC",
+      "start": "1970-01-02",
+      "end": "2026-06-08",
+      "rows": 14122
+    },
+    {
+      "series": "BAMLH0A0HYM2",
+      "role": "CREDIT",
+      "start": "1996-12-31",
+      "end": "2026-06-08",
+      "rows": 6014
+    },
+    {
+      "series": "CPIAUCSL",
+      "role": "CPI",
+      "start": "2000-01-01",
+      "end": "2026-04-01",
+      "rows": 315
+    },
+    {
+      "series": "UNRATE",
+      "role": "UNRATE",
+      "start": "2000-01-01",
+      "end": "2026-05-01",
+      "rows": 316
+    }
+  ],
+  "sourceNotes": [
+    "ETF adjusted closes: Yahoo chart API with durable local JSON cache.",
+    "CLI, CPI, and unemployment: FRED CSV with stale-cache fallback.",
+    "Yield curve: FRED T10Y3M; Yahoo ^TNX minus ^IRX when FRED export is unavailable.",
+    "High-yield OAS: current FRED export merged with a public historical FRED snapshot.",
+    "High-yield OAS gaps: HYG three-month adjusted-price return calibrated to overlapping actual OAS observations.",
+    "FRED USALOLITONOSTSAM currently ends in January 2024; later regime calculations forward-fill its latest observation."
+  ],
+  "creditSourceMonths": {
+    "BAMLH0A0HYM2": 230,
+    "HYG calibrated proxy": 76
+  }
+}
