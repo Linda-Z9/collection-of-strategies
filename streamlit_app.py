@@ -813,31 +813,112 @@ def render_lists(strategy):
             st.write(f"- {item}")
 
 
-st.title("Collection Strategy Dashboard")
-st.caption("Streamlit dashboard for crypto, ETF, and equity strategy research")
+def load_or_refresh_strategies_one_to_four(capital):
+    if st.button("Load / Refresh Strategies 1-4", key="load_strategies_1_4", type="primary"):
+        with st.spinner("Running four stored-data backtests..."):
+            try:
+                st.session_state.strategies_1_4_payloads = load_strategies_one_to_four(capital)
+                st.session_state.strategies_1_4_error = None
+            except Exception as error:
+                st.session_state.strategies_1_4_error = str(error)
+
+    if st.session_state.get("strategies_1_4_error"):
+        st.error(st.session_state.strategies_1_4_error)
+    return st.session_state.get("strategies_1_4_payloads") or {}
+
+
+def render_strategies_one_to_four_research(capital):
+    st.title("Strategies 1-4 Research")
+    st.caption("Dedicated real-data comparison for the four institutional ETF strategies.")
+    payloads = load_or_refresh_strategies_one_to_four(capital)
+    if not payloads:
+        st.info("Click Load / Refresh Strategies 1-4 to run the dedicated comparison.")
+        return
+    summary_rows = []
+    for label, payload in payloads.items():
+        metrics = payload.get("metrics") or {}
+        summary_rows.append(
+            {
+                "Strategy": label,
+                "CAGR": metrics.get("cagr"),
+                "Volatility": metrics.get("annVol"),
+                "Max Drawdown": metrics.get("maxDrawdown"),
+                "Sharpe": metrics.get("sharpe"),
+            }
+        )
+    st.dataframe(pd.DataFrame(summary_rows), use_container_width=True, hide_index=True)
+    chosen = st.selectbox("Detailed strategy", list(payloads), key="new_strategy_detail")
+    render_new_research_strategy(payloads[chosen])
+
+
+def render_aggregated_strategies_one_to_four_risk(capital):
+    st.title("Aggregated Strategies 1-4 Risk Dashboard")
+    st.caption("Cross-strategy performance, positioning, macro, factor, stress, and alert monitoring.")
+    payloads = load_or_refresh_strategies_one_to_four(capital)
+    if not payloads:
+        st.info("Click Load / Refresh Strategies 1-4 to populate the aggregated risk dashboard.")
+        return
+    render_aggregated_risk_dashboard(payloads, ROOT)
+
+
+def render_strategies_one_to_four_limitations():
+    st.title("Strategies 1-4 Data Limitations")
+    limitations_file = os.path.join(ROOT, "DATA_LIMITATIONS.md")
+    if os.path.exists(limitations_file):
+        with open(limitations_file, "r", encoding="utf-8") as handle:
+            st.markdown(handle.read())
+
 
 with st.sidebar:
-    st.header("Scenario")
-    grouped = {}
-    for item in STRATEGIES:
-        grouped.setdefault(item["group"], []).append(item)
-    labels = []
-    label_to_id = {}
-    for group, items in grouped.items():
-        for item in items:
-            label = f'{group} - {item["name"]}'
-            labels.append(label)
-            label_to_id[label] = item["id"]
-    selected_label = st.selectbox("Strategy", labels, index=0)
-    selected_id = label_to_id[selected_label]
-    view_mode = st.radio("View", ["Backtest", "Live"], horizontal=True)
-    data_mode = st.radio("Data", ["Public if available", "Synthetic research"], horizontal=False)
-    capital = st.number_input("Capital", min_value=1000, value=100000, step=1000)
-    lookback = st.selectbox("Lookback", [180, 365, 730, 1095], index=1)
-    fee_tier = st.selectbox("Fee tier", list(FEE_TIERS.keys()), index=0)
-    risk_mode = st.selectbox("Risk mode", list(RISK_MODES.keys()), index=1)
-    symbol = st.text_input("Crypto symbol", "BTCUSDT")
-    run = st.button("Run / Refresh", type="primary")
+    dashboard_view = st.radio(
+        "Dashboard View",
+        [
+            "Individual Strategy",
+            "Strategies 1-4 Research",
+            "Aggregated Risk Dashboard",
+            "Data Limitations",
+        ],
+        help="Aggregated research and risk monitoring are separate from individual strategy pages.",
+    )
+    st.divider()
+    if dashboard_view == "Individual Strategy":
+        st.header("Scenario")
+        grouped = {}
+        for item in STRATEGIES:
+            grouped.setdefault(item["group"], []).append(item)
+        labels = []
+        label_to_id = {}
+        for group, items in grouped.items():
+            for item in items:
+                label = f'{group} - {item["name"]}'
+                labels.append(label)
+                label_to_id[label] = item["id"]
+        selected_label = st.selectbox("Strategy", labels, index=0)
+        selected_id = label_to_id[selected_label]
+        view_mode = st.radio("View", ["Backtest", "Live"], horizontal=True)
+        data_mode = st.radio("Data", ["Public if available", "Synthetic research"], horizontal=False)
+        capital = st.number_input("Capital", min_value=1000, value=100000, step=1000)
+        lookback = st.selectbox("Lookback", [180, 365, 730, 1095], index=1)
+        fee_tier = st.selectbox("Fee tier", list(FEE_TIERS.keys()), index=0)
+        risk_mode = st.selectbox("Risk mode", list(RISK_MODES.keys()), index=1)
+        symbol = st.text_input("Crypto symbol", "BTCUSDT")
+        run = st.button("Run / Refresh", type="primary")
+    elif dashboard_view in {"Strategies 1-4 Research", "Aggregated Risk Dashboard"}:
+        st.header("Hub Settings")
+        capital = st.number_input("Comparison Capital", min_value=1000, value=100000, step=1000)
+
+if dashboard_view == "Strategies 1-4 Research":
+    render_strategies_one_to_four_research(capital)
+    st.stop()
+if dashboard_view == "Aggregated Risk Dashboard":
+    render_aggregated_strategies_one_to_four_risk(capital)
+    st.stop()
+if dashboard_view == "Data Limitations":
+    render_strategies_one_to_four_limitations()
+    st.stop()
+
+st.title("Collection Strategy Dashboard")
+st.caption("Streamlit dashboard for crypto, ETF, and equity strategy research")
 
 selected = strategy_by_id(selected_id)
 key = (selected_id, view_mode, data_mode, capital, lookback, fee_tier, risk_mode, symbol)
@@ -1014,54 +1095,3 @@ st.download_button("Download comparison CSV", csv, "collection-strategy-dashboar
 
 with st.expander("Raw Result Payload"):
     st.json(result.get("payload") or result)
-
-research_tab, aggregated_risk_tab, limitations_tab = st.tabs(
-    ["Strategies 1-4 Research", "Aggregated Risk Dashboard", "Strategies 1-4 Data Limitations"]
-)
-with research_tab:
-    st.markdown("### Institutional Macro and Factor Strategies")
-    st.caption("Dedicated real-data comparison tab for the four newly implemented ETF strategies.")
-    if st.button("Load / Refresh Strategies 1-4", key="load_strategies_1_4"):
-        with st.spinner("Running four stored-data backtests..."):
-            try:
-                st.session_state.strategies_1_4_payloads = load_strategies_one_to_four(capital)
-                st.session_state.strategies_1_4_error = None
-            except Exception as error:
-                st.session_state.strategies_1_4_error = str(error)
-    if st.session_state.get("strategies_1_4_error"):
-        st.error(st.session_state.strategies_1_4_error)
-    research_payloads = st.session_state.get("strategies_1_4_payloads") or {}
-    if not research_payloads:
-        st.info("Click Load / Refresh Strategies 1-4 to run the dedicated comparison.")
-    else:
-        summary_rows = []
-        for label, research_payload in research_payloads.items():
-            research_metrics = research_payload.get("metrics") or {}
-            summary_rows.append(
-                {
-                    "Strategy": label,
-                    "CAGR": research_metrics.get("cagr"),
-                    "Volatility": research_metrics.get("annVol"),
-                    "Max Drawdown": research_metrics.get("maxDrawdown"),
-                    "Sharpe": research_metrics.get("sharpe"),
-                }
-            )
-        st.dataframe(pd.DataFrame(summary_rows), use_container_width=True, hide_index=True)
-        chosen = st.selectbox("Detailed strategy", list(research_payloads), key="new_strategy_detail")
-        render_new_research_strategy(research_payloads[chosen])
-
-with aggregated_risk_tab:
-    st.markdown("### Aggregated Strategies 1-4 Risk Dashboard")
-    st.caption("Cross-strategy performance, positioning, macro, factor, stress, and alert monitoring.")
-    aggregated_payloads = st.session_state.get("strategies_1_4_payloads") or {}
-    if not aggregated_payloads:
-        st.info("Load Strategies 1-4 from the research tab to populate the aggregated risk dashboard.")
-    else:
-        render_aggregated_risk_dashboard(aggregated_payloads, ROOT)
-
-with limitations_tab:
-    st.markdown("### Known Data and Modeling Limitations")
-    limitations_file = os.path.join(ROOT, "DATA_LIMITATIONS.md")
-    if os.path.exists(limitations_file):
-        with open(limitations_file, "r", encoding="utf-8") as handle:
-            st.markdown(handle.read())
