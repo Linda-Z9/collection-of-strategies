@@ -40,3 +40,12 @@
 - The fixed target factor percentages are matched against raw ETF regression betas rather than normalized institutional factor units.
 - The optimizer is a NumPy projected-gradient implementation rather than a dedicated quadratic-program solver.
 - ETF factor proxies include fund-specific fees, tracking error, and launch-date limitations.
+
+## Aggregated Risk Dashboard
+
+- Regime probability is a model-implied heuristic from CLI level and momentum, not a calibrated recession or regime forecast. It also inherits the stale January 2024 CLI limitation.
+- Non-factor strategies are mapped through the latest BlackRock ETF regression matrix to estimate common factor exposure.
+- ETF risk contribution uses current weights and a trailing 252-day covariance matrix. It is not a forward-looking risk model.
+- Historical stress tests use realized backtest returns over selected windows. Hypothetical shocks use a linear current-weight approximation.
+- Regime accuracy is unavailable until a point-in-time outcome definition is specified.
+- Upcoming CPI, FOMC, NFP, macro-surprise, and VIX monitoring remain unavailable because live calendar, consensus-estimate, and VIX data connectors are not configured.

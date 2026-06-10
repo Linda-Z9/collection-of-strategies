@@ -122,6 +122,10 @@ python strategies/blackrock_factor_replication.py
 
 Strategies 1-4 are available from the main dashboard selector and from the dedicated **Strategies 1-4 Research** tab. Known limitations for all four strategies are documented in `DATA_LIMITATIONS.md`.
 
+The **Aggregated Risk Dashboard** tab compares the four strategies across overview,
+performance, current allocation, macro regime, factor exposure, risk contribution,
+stress tests, signal health, event-risk availability, and threshold alerts.
+
 The funding and futures-basis routes run through the local `server.js` proxy, which the Streamlit app can start or reuse.
 
 ## Missing Details Before Production Use

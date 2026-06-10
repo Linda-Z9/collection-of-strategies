@@ -12,6 +12,7 @@ import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
+from aggregated_risk_dashboard import render_aggregated_risk_dashboard
 from strategies.defensive_trend_risk_parity import run_backtest as run_defensive_trend_risk_parity
 from strategies.regime_aware_etf_momentum import run_backtest as run_regime_aware_etf_momentum
 from strategies.dynamic_macro_factor_allocation import run_backtest as run_dynamic_macro_factor_allocation
@@ -1014,7 +1015,9 @@ st.download_button("Download comparison CSV", csv, "collection-strategy-dashboar
 with st.expander("Raw Result Payload"):
     st.json(result.get("payload") or result)
 
-research_tab, limitations_tab = st.tabs(["Strategies 1-4 Research", "Strategies 1-4 Data Limitations"])
+research_tab, aggregated_risk_tab, limitations_tab = st.tabs(
+    ["Strategies 1-4 Research", "Aggregated Risk Dashboard", "Strategies 1-4 Data Limitations"]
+)
 with research_tab:
     st.markdown("### Institutional Macro and Factor Strategies")
     st.caption("Dedicated real-data comparison tab for the four newly implemented ETF strategies.")
@@ -1046,6 +1049,15 @@ with research_tab:
         st.dataframe(pd.DataFrame(summary_rows), use_container_width=True, hide_index=True)
         chosen = st.selectbox("Detailed strategy", list(research_payloads), key="new_strategy_detail")
         render_new_research_strategy(research_payloads[chosen])
+
+with aggregated_risk_tab:
+    st.markdown("### Aggregated Strategies 1-4 Risk Dashboard")
+    st.caption("Cross-strategy performance, positioning, macro, factor, stress, and alert monitoring.")
+    aggregated_payloads = st.session_state.get("strategies_1_4_payloads") or {}
+    if not aggregated_payloads:
+        st.info("Load Strategies 1-4 from the research tab to populate the aggregated risk dashboard.")
+    else:
+        render_aggregated_risk_dashboard(aggregated_payloads, ROOT)
 
 with limitations_tab:
     st.markdown("### Known Data and Modeling Limitations")
