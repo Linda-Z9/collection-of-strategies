@@ -30,6 +30,7 @@ from strategies.futures_basis import run_live as run_futures_basis_live
 ROOT = os.path.dirname(os.path.abspath(__file__))
 API_PORT = "8010"
 API_BASE = f"http://127.0.0.1:{API_PORT}"
+STRATEGIES_ONE_TO_FOUR_CACHE_TTL_SECONDS = 60 * 60
 
 
 STRATEGIES = [
@@ -747,6 +748,11 @@ def render_new_research_strategy(payload):
         st.caption(f"Data limitation: {limitation}")
 
 
+@st.cache_data(
+    ttl=STRATEGIES_ONE_TO_FOUR_CACHE_TTL_SECONDS,
+    max_entries=4,
+    show_spinner=False,
+)
 def load_strategies_one_to_four(capital):
     return {
         "Strategy 1 - Regime-Aware ETF Momentum": run_regime_aware_etf_momentum(capital=capital),
@@ -815,16 +821,14 @@ def render_lists(strategy):
 
 def load_or_refresh_strategies_one_to_four(capital):
     if st.button("Load / Refresh Strategies 1-4", key="load_strategies_1_4", type="primary"):
-        with st.spinner("Running four stored-data backtests..."):
-            try:
-                st.session_state.strategies_1_4_payloads = load_strategies_one_to_four(capital)
-                st.session_state.strategies_1_4_error = None
-            except Exception as error:
-                st.session_state.strategies_1_4_error = str(error)
+        load_strategies_one_to_four.clear()
 
-    if st.session_state.get("strategies_1_4_error"):
-        st.error(st.session_state.strategies_1_4_error)
-    return st.session_state.get("strategies_1_4_payloads") or {}
+    with st.spinner("Loading temporarily stored Strategies 1-4 results..."):
+        try:
+            return load_strategies_one_to_four(capital)
+        except Exception as error:
+            st.error(str(error))
+            return {}
 
 
 def render_strategies_one_to_four_research(capital):
@@ -832,7 +836,7 @@ def render_strategies_one_to_four_research(capital):
     st.caption("Dedicated real-data comparison for the four institutional ETF strategies.")
     payloads = load_or_refresh_strategies_one_to_four(capital)
     if not payloads:
-        st.info("Click Load / Refresh Strategies 1-4 to run the dedicated comparison.")
+        st.info("Strategies 1-4 results are currently unavailable. Use Load / Refresh Strategies 1-4 to retry.")
         return
     summary_rows = []
     for label, payload in payloads.items():
@@ -856,9 +860,94 @@ def render_aggregated_strategies_one_to_four_risk(capital):
     st.caption("Cross-strategy performance, positioning, macro, factor, stress, and alert monitoring.")
     payloads = load_or_refresh_strategies_one_to_four(capital)
     if not payloads:
-        st.info("Click Load / Refresh Strategies 1-4 to populate the aggregated risk dashboard.")
+        st.info("Strategies 1-4 risk results are currently unavailable. Use Load / Refresh Strategies 1-4 to retry.")
         return
     render_aggregated_risk_dashboard(payloads, ROOT)
+
+
+def render_strategies_one_to_four_correlation(capital):
+    st.title("Strategies 1-4 Correlation Dashboard")
+    st.caption("Compare return relationships and how they change through time.")
+    payloads = load_or_refresh_strategies_one_to_four(capital)
+    if not payloads:
+        st.info("Strategies 1-4 correlation results are currently unavailable. Use Load / Refresh Strategies 1-4 to retry.")
+        return
+
+    frequency = st.radio("Return frequency", ["Monthly", "Daily"], horizontal=True)
+    return_series = {}
+    for label, payload in payloads.items():
+        points = pd.DataFrame(payload.get("points") or [])
+        if points.empty or "date" not in points or "equity" not in points:
+            continue
+        points["date"] = pd.to_datetime(points["date"])
+        equity = points.drop_duplicates("date").set_index("date")["equity"].astype(float).sort_index()
+        if frequency == "Monthly":
+            equity = equity.resample("ME").last()
+        return_series[label] = equity.pct_change()
+
+    returns = pd.DataFrame(return_series).dropna(how="all")
+    if returns.shape[1] < 2:
+        st.warning("At least two strategies with overlapping return history are required.")
+        return
+
+    correlation = returns.corr()
+    figure = go.Figure(
+        go.Heatmap(
+            z=correlation.values,
+            x=correlation.columns,
+            y=correlation.index,
+            zmin=-1,
+            zmax=1,
+            zmid=0,
+            colorscale="RdBu",
+            reversescale=True,
+            text=correlation.round(2).values,
+            texttemplate="%{text}",
+            colorbar={"title": "Correlation"},
+        )
+    )
+    figure.update_layout(height=520, margin=dict(l=20, r=20, t=30, b=20), template="plotly_white")
+    st.plotly_chart(figure, use_container_width=True)
+
+    pair_rows = []
+    columns = list(returns.columns)
+    for left_index, left in enumerate(columns):
+        for right in columns[left_index + 1 :]:
+            pair = returns[[left, right]].dropna()
+            pair_rows.append(
+                {
+                    "Strategy A": left,
+                    "Strategy B": right,
+                    "Correlation": pair[left].corr(pair[right]),
+                    "Overlapping Observations": len(pair),
+                }
+            )
+    pairs = pd.DataFrame(pair_rows).sort_values("Correlation")
+    st.markdown("#### Pairwise Correlations")
+    st.dataframe(
+        pairs,
+        use_container_width=True,
+        hide_index=True,
+        column_config={"Correlation": st.column_config.NumberColumn(format="%.3f")},
+    )
+
+    left_col, right_col = st.columns(2)
+    with left_col:
+        first_strategy = st.selectbox("Rolling correlation strategy A", columns, index=0)
+    with right_col:
+        second_options = [column for column in columns if column != first_strategy]
+        second_strategy = st.selectbox("Rolling correlation strategy B", second_options, index=0)
+    default_window = 12 if frequency == "Monthly" else 60
+    rolling_window = st.number_input(
+        f"Rolling window ({frequency.lower()} observations)",
+        min_value=3,
+        value=default_window,
+        step=1,
+    )
+    rolling_pair = returns[[first_strategy, second_strategy]].dropna()
+    rolling_correlation = rolling_pair[first_strategy].rolling(rolling_window).corr(rolling_pair[second_strategy])
+    st.line_chart(rolling_correlation.rename("Rolling correlation"))
+    st.caption("Correlations use overlapping strategy returns and do not imply stable future diversification.")
 
 
 def render_strategies_one_to_four_limitations():
@@ -876,6 +965,7 @@ with st.sidebar:
             "Individual Strategy",
             "Strategies 1-4 Research",
             "Aggregated Risk Dashboard",
+            "Correlation Dashboard",
             "Data Limitations",
         ],
         help="Aggregated research and risk monitoring are separate from individual strategy pages.",
@@ -903,7 +993,7 @@ with st.sidebar:
         risk_mode = st.selectbox("Risk mode", list(RISK_MODES.keys()), index=1)
         symbol = st.text_input("Crypto symbol", "BTCUSDT")
         run = st.button("Run / Refresh", type="primary")
-    elif dashboard_view in {"Strategies 1-4 Research", "Aggregated Risk Dashboard"}:
+    elif dashboard_view in {"Strategies 1-4 Research", "Aggregated Risk Dashboard", "Correlation Dashboard"}:
         st.header("Hub Settings")
         capital = st.number_input("Comparison Capital", min_value=1000, value=100000, step=1000)
 
@@ -912,6 +1002,9 @@ if dashboard_view == "Strategies 1-4 Research":
     st.stop()
 if dashboard_view == "Aggregated Risk Dashboard":
     render_aggregated_strategies_one_to_four_risk(capital)
+    st.stop()
+if dashboard_view == "Correlation Dashboard":
+    render_strategies_one_to_four_correlation(capital)
     st.stop()
 if dashboard_view == "Data Limitations":
     render_strategies_one_to_four_limitations()
