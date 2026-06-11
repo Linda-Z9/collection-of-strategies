@@ -100,6 +100,18 @@ The combined manifest is stored in `data/all_etf_strategies_data_manifest.json`.
 Committed local caches let the dashboard and backtests continue to work when an
 upstream public endpoint is unavailable.
 
+Build the complete Strategies 1-4 dashboard snapshot before committing and
+pushing updated backtest results:
+
+```powershell
+python scripts/build_strategies_snapshot.py
+```
+
+The dashboard loads `data/strategies_1_4_snapshot.json` first, so fresh
+deployments can immediately render the research, aggregated risk, and
+correlation pages without rerunning all four backtests. The dashboard's
+**Load / Refresh Strategies 1-4** button deliberately rebuilds this snapshot.
+
 Dynamic Macro Factor Allocation is implemented separately in `strategies/dynamic_macro_factor_allocation.py`. It runs both the rule-based and NumPy projected-gradient optimizer versions, uses rolling 36-month ETF factor regressions, applies the requested risk controls, and exports all requested analytics under `data/dynamic_macro_factor_allocation/`.
 
 ```powershell

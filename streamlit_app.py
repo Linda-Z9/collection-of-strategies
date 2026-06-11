@@ -25,6 +25,7 @@ from strategies.funding_carry import run_live as run_funding_carry_live
 from strategies.futures_basis import METADATA as FUTURES_BASIS_METADATA
 from strategies.futures_basis import run_backtest as run_futures_basis
 from strategies.futures_basis import run_live as run_futures_basis_live
+from strategy_snapshot import load_strategies_snapshot, refresh_strategies_snapshot
 
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
@@ -754,12 +755,10 @@ def render_new_research_strategy(payload):
     show_spinner=False,
 )
 def load_strategies_one_to_four(capital):
-    return {
-        "Strategy 1 - Regime-Aware ETF Momentum": run_regime_aware_etf_momentum(capital=capital),
-        "Strategy 2 - Dynamic Macro Factor Allocation": run_dynamic_macro_factor_allocation(capital=capital),
-        "Strategy 3 - Pure Business-Cycle Asset Rotation": run_pure_business_cycle_asset_rotation(capital=capital),
-        "Strategy 4 - BlackRock Factor Replication": run_blackrock_factor_replication(capital=capital),
-    }
+    payloads = load_strategies_snapshot(capital)
+    if payloads is not None:
+        return payloads
+    return refresh_strategies_snapshot(capital)
 
 
 def comparison_table(capital, lookback, fee_tier, risk_mode):
@@ -822,8 +821,14 @@ def render_lists(strategy):
 def load_or_refresh_strategies_one_to_four(capital):
     if st.button("Load / Refresh Strategies 1-4", key="load_strategies_1_4", type="primary"):
         load_strategies_one_to_four.clear()
+        with st.spinner("Rebuilding and storing Strategies 1-4 results..."):
+            try:
+                return refresh_strategies_snapshot(capital)
+            except Exception as error:
+                st.error(str(error))
+                return {}
 
-    with st.spinner("Loading temporarily stored Strategies 1-4 results..."):
+    with st.spinner("Loading stored Strategies 1-4 results..."):
         try:
             return load_strategies_one_to_four(capital)
         except Exception as error:
