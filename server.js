@@ -325,6 +325,20 @@ function lastFriday(year, monthIndex) {
   return date;
 }
 
+function isLastFridayExpiry(expiryTime) {
+  const date = new Date(expiryTime);
+  return lastFriday(date.getUTCFullYear(), date.getUTCMonth()).getTime() === expiryTime;
+}
+
+function isQuarterlyExpiry(expiryTime) {
+  const month = new Date(expiryTime).getUTCMonth();
+  return [2, 5, 8, 11].includes(month) && isLastFridayExpiry(expiryTime);
+}
+
+function deribitDeliveryFeeBps(expiryTime, nonWeeklyDeliveryFeeBps) {
+  return isLastFridayExpiry(expiryTime) ? nonWeeklyDeliveryFeeBps : 0;
+}
+
 function formatDeribitFutureName(date) {
   const day = String(date.getUTCDate());
   const month = deribitMonths[date.getUTCMonth()];
@@ -332,7 +346,7 @@ function formatDeribitFutureName(date) {
   return `BTC-${day}${month}${year}`;
 }
 
-function generatedDeribitFutureCandidates(startTime, endTime, minDte, maxDte) {
+function generatedDeribitFutureCandidates(startTime, endTime, minDte, maxDte, contractSet = "weekly-quarterly") {
   const start = new Date(startTime - maxDte * 86400000);
   const end = new Date(endTime + maxDte * 86400000);
   const names = new Set();
@@ -340,9 +354,30 @@ function generatedDeribitFutureCandidates(startTime, endTime, minDte, maxDte) {
     for (let month = 0; month < 12; month += 1) {
       const expiry = lastFriday(year, month);
       const expiryTime = expiry.getTime();
-      if (expiryTime >= startTime + minDte * 86400000 && expiryTime <= endTime + maxDte * 86400000) {
+      if (
+        contractSet !== "weekly-quarterly" &&
+        expiryTime >= startTime + minDte * 86400000 &&
+        expiryTime <= endTime + maxDte * 86400000
+      ) {
         names.add(formatDeribitFutureName(expiry));
       }
+    }
+  }
+
+  if (contractSet === "weekly-quarterly") {
+    const cursor = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth(), start.getUTCDate(), 8, 0, 0));
+    while (cursor.getUTCDay() !== 5) {
+      cursor.setUTCDate(cursor.getUTCDate() + 1);
+    }
+    while (cursor <= end) {
+      const expiryTime = cursor.getTime();
+      const eligibleTime =
+        expiryTime >= startTime + minDte * 86400000 &&
+        expiryTime <= endTime + maxDte * 86400000;
+      if (eligibleTime && (!isLastFridayExpiry(expiryTime) || isQuarterlyExpiry(expiryTime))) {
+        names.add(formatDeribitFutureName(cursor));
+      }
+      cursor.setUTCDate(cursor.getUTCDate() + 7);
     }
   }
   return [...names].sort((a, b) => parseDeribitFutureName(a) - parseDeribitFutureName(b));
@@ -2133,27 +2168,32 @@ async function handleBasisBacktest(url, response) {
   const capital = Math.max(1000, Number(url.searchParams.get("capital") || 100000));
   const requestedInstrument = (url.searchParams.get("instrument") || "").toUpperCase();
   const spotProduct = (url.searchParams.get("spotProduct") || "BTC-USD").toUpperCase();
-  const model = (url.searchParams.get("model") || "dynamic").toLowerCase();
+  const model = (url.searchParams.get("model") || "hold").toLowerCase();
   const feeModel = (url.searchParams.get("feeModel") || "realistic").toLowerCase();
-  const entryAnnual = Number(url.searchParams.get("entryAnnual") || 0.04);
-  const exitAnnual = Number(url.searchParams.get("exitAnnual") || 0.015);
-  const percentileEntry = Number(url.searchParams.get("percentileEntry") || 0.85);
-  const minDte = Number(url.searchParams.get("minDte") || 7);
+  const contractSet = (url.searchParams.get("contractSet") || "weekly-quarterly").toLowerCase();
+  const entryAnnual = Number(url.searchParams.get("entryAnnual") || 0.12);
+  const exitAnnual = Number(url.searchParams.get("exitAnnual") || 0.05);
+  const minimumNetEdgeAnnual = Number(url.searchParams.get("minimumNetEdgeAnnual") || 0.03);
+  const percentileEntry = Number(url.searchParams.get("percentileEntry") || 0.9);
+  const minDte = Number(url.searchParams.get("minDte") || 14);
   const maxDte = Number(url.searchParams.get("maxDte") || 90);
-  const rollDte = Number(url.searchParams.get("rollDte") || 3);
-  const minHourlyVolume = Number(url.searchParams.get("minHourlyVolume") || 0.5);
+  const rollDte = Number(url.searchParams.get("rollDte") || 0.25);
+  const minHourlyVolume = Number(url.searchParams.get("minHourlyVolume") || 1);
   const minCashBuffer = Number(url.searchParams.get("minCashBuffer") || 0.25);
   const maxMarginDrawdown = Number(url.searchParams.get("maxMarginDrawdown") || 0.2);
   const notionalFraction = Math.min(0.85, Math.max(0.1, Number(url.searchParams.get("notionalFraction") || 0.5)));
-  const fundingCostAnnual = Number(url.searchParams.get("fundingCostAnnual") || 0.02);
+  const fundingCostAnnual = Number(url.searchParams.get("fundingCostAnnual") || 0.04);
   const spotCashCostAnnual = Number(url.searchParams.get("spotCashCostAnnual") || fundingCostAnnual);
   const futuresMarginCostAnnual = Number(url.searchParams.get("futuresMarginCostAnnual") || 0.01);
-  const rollCostBufferAnnual = Number(url.searchParams.get("rollCostBufferAnnual") || 0.005);
+  const safetyBufferAnnual = Number(url.searchParams.get("safetyBufferAnnual") || 0.02);
+  const rollImprovementAnnual = Number(url.searchParams.get("rollImprovementAnnual") || 0.03);
   const initialMarginRate = Number(url.searchParams.get("initialMarginRate") || 0.1);
+  const nonWeeklyDeliveryFeeBps = Number(url.searchParams.get("nonWeeklyDeliveryFeeBps") || 2.5);
   const feeProfiles = {
-    conservative: { spotFeeBps: 8, futureFeeBps: 5, spotSlippageBps: 4, futureSlippageBps: 4 },
-    realistic: { spotFeeBps: 6, futureFeeBps: -0.5, spotSlippageBps: 2, futureSlippageBps: 1 },
-    optimistic: { spotFeeBps: 1, futureFeeBps: -0.5, spotSlippageBps: 1, futureSlippageBps: 0.5 }
+    conservative: { spotFeeBps: 40, futureFeeBps: 5, spotSlippageBps: 10, futureSlippageBps: 10 },
+    realistic: { spotFeeBps: 40, futureFeeBps: 0, spotSlippageBps: 5, futureSlippageBps: 5 },
+    activeMaker: { spotFeeBps: 10, futureFeeBps: 0, spotSlippageBps: 3, futureSlippageBps: 3 },
+    optimistic: { spotFeeBps: 3, futureFeeBps: 0, spotSlippageBps: 2, futureSlippageBps: 2 }
   };
   const fees = feeProfiles[feeModel] || feeProfiles.realistic;
   const endTime = Date.now();
@@ -2162,20 +2202,24 @@ async function handleBasisBacktest(url, response) {
 
   const candidateNames = requestedInstrument
     ? [requestedInstrument]
-    : generatedDeribitFutureCandidates(startTime, endTime, minDte, maxDte);
+    : generatedDeribitFutureCandidates(startTime, endTime, minDte, maxDte, contractSet);
   const candleSets = [];
   for (const instrumentName of candidateNames) {
     const expiration = parseDeribitFutureName(instrumentName);
     if (!expiration) {
       continue;
     }
-    const chart = await fetchJson(
-      `${deribitBase}/public/get_tradingview_chart_data?instrument_name=${instrumentName}&start_timestamp=${startTime}&end_timestamp=${endTime}&resolution=60`,
-      cacheMs
-    );
-    const candles = deribitChartToCandles(chart).filter((row) => row.volume >= minHourlyVolume);
-    if (candles.length) {
-      candleSets.push({ instrumentName, expiration, candles });
+    try {
+      const chart = await fetchJson(
+        `${deribitBase}/public/get_tradingview_chart_data?instrument_name=${instrumentName}&start_timestamp=${startTime}&end_timestamp=${endTime}&resolution=60`,
+        cacheMs
+      );
+      const candles = deribitChartToCandles(chart).filter((row) => row.volume >= minHourlyVolume);
+      if (candles.length) {
+        candleSets.push({ instrumentName, expiration, candles });
+      }
+    } catch (error) {
+      // Some historical weekly names are not listed by Deribit for every date; skip missing contracts.
     }
   }
 
@@ -2198,18 +2242,12 @@ async function handleBasisBacktest(url, response) {
     });
   });
 
-  const roundTripRate =
-    (fees.spotFeeBps +
-      fees.futureFeeBps +
-      fees.spotSlippageBps +
-      fees.futureSlippageBps +
-      Math.abs(fees.futureFeeBps) +
-      fees.futureSlippageBps) /
-    10000;
   const openingRate =
-    (fees.spotFeeBps + fees.futureFeeBps + fees.spotSlippageBps + fees.futureSlippageBps) / 10000;
+    (fees.spotFeeBps + Math.abs(fees.futureFeeBps) + fees.spotSlippageBps + fees.futureSlippageBps) / 10000;
   const closingRate = openingRate;
   const futuresLegRate = (Math.abs(fees.futureFeeBps) + fees.futureSlippageBps) / 10000;
+  const spotRoundTripRate = (fees.spotFeeBps * 2 + fees.spotSlippageBps * 2) / 10000;
+  const futuresRoundTripRate = (Math.abs(fees.futureFeeBps) * 2 + fees.futureSlippageBps * 2) / 10000;
   const basisRows = [];
   [...curveByTime.entries()]
     .sort((a, b) => Number(a[0]) - Number(b[0]))
@@ -2224,12 +2262,17 @@ async function handleBasisBacktest(url, response) {
         .forEach((future) => {
           const basis = future.close / spot - 1;
           const annualized = basis * (365 / future.daysToExpiry);
-          const amortizedExecution = roundTripRate * (365 / future.daysToExpiry);
+          const deliveryFeeBps = deribitDeliveryFeeBps(future.expiration, nonWeeklyDeliveryFeeBps);
+          const deliveryRate = deliveryFeeBps / 10000;
+          const amortizedSpotFee = spotRoundTripRate * (365 / future.daysToExpiry);
+          const amortizedFuturesFee = futuresRoundTripRate * (365 / future.daysToExpiry);
+          const amortizedDelivery = deliveryRate * (365 / future.daysToExpiry);
+          const amortizedExecution = amortizedSpotFee + amortizedFuturesFee + amortizedDelivery;
           const netAnnualized =
             annualized -
             spotCashCostAnnual -
             futuresMarginCostAnnual -
-            rollCostBufferAnnual -
+            safetyBufferAnnual -
             amortizedExecution;
           basisRows.push({
             ...future,
@@ -2237,7 +2280,13 @@ async function handleBasisBacktest(url, response) {
             basis,
             annualized,
             netAnnualized,
-            amortizedExecution
+            amortizedExecution,
+            amortizedSpotFee,
+            amortizedFuturesFee,
+            amortizedDelivery,
+            deliveryFeeBps,
+            isWeekly: !isLastFridayExpiry(future.expiration),
+            isQuarterly: isQuarterlyExpiry(future.expiration)
           });
         });
     });
@@ -2267,6 +2316,7 @@ async function handleBasisBacktest(url, response) {
   let basisCompressionPnl = 0;
   let feesPaid = 0;
   let slippagePaid = 0;
+  let deliveryFeesPaid = 0;
   let rollCost = 0;
   let fundingCost = 0;
   let previousSpot = null;
@@ -2279,10 +2329,15 @@ async function handleBasisBacktest(url, response) {
   for (const [, rows] of timeEntries) {
     const sortedRows = [...rows].sort((a, b) => b.netAnnualized - a.netAnnualized || a.daysToExpiry - b.daysToExpiry);
     const heldFuture = inPosition ? sortedRows.find((row) => row.instrumentName === currentInstrument) : null;
-    const future = heldFuture || sortedRows[0];
+    const bestFuture = sortedRows[0];
+    const rollCandidateIsBetter =
+      inPosition &&
+      heldFuture &&
+      bestFuture.instrumentName !== heldFuture.instrumentName &&
+      bestFuture.netAnnualized >= heldFuture.netAnnualized + rollImprovementAnnual &&
+      bestFuture.netAnnualized >= minimumNetEdgeAnnual;
+    let future = heldFuture || bestFuture;
     const spot = future.spot;
-    const daysToExpiry = Math.max(0.01, future.daysToExpiry);
-    const netAnnualized = future.netAnnualized;
 
     if (inPosition && previousSpot && previousFuture) {
       const spotLegPnl = notional * (spot / previousSpot - 1);
@@ -2295,19 +2350,28 @@ async function handleBasisBacktest(url, response) {
       fundingCost += carryCost;
     }
 
-    if (inPosition && currentInstrument && future.instrumentName !== currentInstrument) {
+    let rolledThisStep = false;
+    if (rollCandidateIsBetter) {
       const rollFee = notional * futuresLegRate * 2;
       equity -= rollFee;
       rollCost += rollFee;
-      currentInstrument = future.instrumentName;
-      previousFuture = future.close;
+      currentInstrument = bestFuture.instrumentName;
+      previousFuture = bestFuture.close;
       trades += 1;
+      future = bestFuture;
+      rolledThisStep = true;
     }
 
+    const daysToExpiry = Math.max(0.01, future.daysToExpiry);
+    const netAnnualized = future.netAnnualized;
     const marginUsed = inPosition ? notional * initialMarginRate : 0;
     const cashBuffer = inPosition ? Math.max(0, equity - notional - marginUsed) / Math.max(1, equity) : 1;
     const tradeDrawdown = inPosition ? equity / entryEquity - 1 : 0;
-    const shouldEnter = !inPosition && netAnnualized >= entryThreshold && daysToExpiry > rollDte;
+    const shouldEnter =
+      !inPosition &&
+      future.annualized >= entryThreshold &&
+      netAnnualized >= minimumNetEdgeAnnual &&
+      daysToExpiry > rollDte;
     const shouldExitDynamic = model !== "hold" && inPosition && netAnnualized < exitAnnual;
     const shouldExitExpiry = inPosition && daysToExpiry <= rollDte;
     const shouldExitLiquidity = inPosition && future.volume < minHourlyVolume;
@@ -2315,7 +2379,7 @@ async function handleBasisBacktest(url, response) {
 
     if (shouldEnter) {
       notional = equity * notionalFraction;
-      const feeCost = notional * (fees.spotFeeBps + fees.futureFeeBps) / 10000;
+      const feeCost = notional * (fees.spotFeeBps + Math.abs(fees.futureFeeBps)) / 10000;
       const slipCost = notional * (fees.spotSlippageBps + fees.futureSlippageBps) / 10000;
       equity -= feeCost + slipCost;
       feesPaid += feeCost;
@@ -2327,11 +2391,13 @@ async function handleBasisBacktest(url, response) {
       reason = "enter";
       trades += 1;
     } else if (shouldExitDynamic || shouldExitExpiry || shouldExitLiquidity || shouldExitMargin) {
-      const feeCost = notional * (fees.spotFeeBps + fees.futureFeeBps) / 10000;
+      const feeCost = notional * (fees.spotFeeBps + Math.abs(fees.futureFeeBps)) / 10000;
       const slipCost = notional * (fees.spotSlippageBps + fees.futureSlippageBps) / 10000;
-      equity -= feeCost + slipCost;
+      const deliveryFee = shouldExitExpiry ? notional * (future.deliveryFeeBps / 10000) : 0;
+      equity -= feeCost + slipCost + deliveryFee;
       feesPaid += feeCost;
       slippagePaid += slipCost;
+      deliveryFeesPaid += deliveryFee;
       inPosition = false;
       spotPositionOpen = false;
       currentInstrument = null;
@@ -2345,7 +2411,7 @@ async function handleBasisBacktest(url, response) {
             : "exit_margin";
       trades += 1;
     } else {
-      reason = "hold";
+      reason = rolledThisStep ? "roll_better_net_basis" : "hold";
     }
 
     previousSpot = spot;
@@ -2359,6 +2425,10 @@ async function handleBasisBacktest(url, response) {
       annualized: future.annualized,
       netAnnualized,
       amortizedExecution: future.amortizedExecution,
+      amortizedSpotFee: future.amortizedSpotFee,
+      amortizedFuturesFee: future.amortizedFuturesFee,
+      amortizedDelivery: future.amortizedDelivery,
+      deliveryFeeBps: future.deliveryFeeBps,
       daysToExpiry,
       instrument: future.instrumentName,
       volume: future.volume,
@@ -2370,7 +2440,7 @@ async function handleBasisBacktest(url, response) {
   }
 
   if (inPosition && notional > 0) {
-    const feeCost = notional * (fees.spotFeeBps + fees.futureFeeBps) / 10000;
+    const feeCost = notional * (fees.spotFeeBps + Math.abs(fees.futureFeeBps)) / 10000;
     const slipCost = notional * (fees.spotSlippageBps + fees.futureSlippageBps) / 10000;
     equity -= feeCost + slipCost;
     feesPaid += feeCost;
@@ -2391,12 +2461,12 @@ async function handleBasisBacktest(url, response) {
     alwaysCarryEligible.reduce((sum, row) => sum + row.netAnnualized, 0) / Math.max(1, alwaysCarryEligible.length);
 
   sendJson(response, 200, {
-    mode: "public-deribit-coinbase-basis-v2",
-    instrument: requestedInstrument || "rolling-nearest-liquid",
+    mode: "public-deribit-coinbase-basis-v3-high-threshold-carry",
+    instrument: requestedInstrument || contractSet,
     instruments: candleSets.map((set) => set.instrumentName),
     spotProduct,
     days,
-    frequency: "1h Deribit futures candles with 1h Coinbase spot candles; net-basis carry v2",
+    frequency: "1h Deribit futures candles with 1h Coinbase spot candles; high-threshold net-basis carry",
     rows: { futureCandles: futureCandles.length, spotCandles: spotCandles.length, instruments: candleSets.length },
     coverage: {
       requestedHours: Math.round((endTime - startTime) / 3600000),
@@ -2405,8 +2475,10 @@ async function handleBasisBacktest(url, response) {
     assumptions: {
       model,
       feeModel,
+      contractSet,
       entryAnnual,
       exitAnnual,
+      minimumNetEdgeAnnual,
       percentileEntry,
       entryThreshold,
       percentileThreshold,
@@ -2414,7 +2486,9 @@ async function handleBasisBacktest(url, response) {
       fundingCostAnnual,
       spotCashCostAnnual,
       futuresMarginCostAnnual,
-      rollCostBufferAnnual,
+      safetyBufferAnnual,
+      rollImprovementAnnual,
+      nonWeeklyDeliveryFeeBps,
       capital,
       notionalFraction,
       minDte,
@@ -2434,9 +2508,10 @@ async function handleBasisBacktest(url, response) {
       basisCompressionPnl,
       fees: feesPaid,
       slippage: slippagePaid,
+      deliveryFees: deliveryFeesPaid,
       rollCost,
       fundingCost,
-      totalCosts: feesPaid + slippagePaid + rollCost + fundingCost
+      totalCosts: feesPaid + slippagePaid + deliveryFeesPaid + rollCost + fundingCost
     },
     benchmarks: {
       buyHoldBtcPnl: buyHoldPnl,
@@ -2452,65 +2527,96 @@ async function handleBasisLive(url, response) {
   const requestedInstrument = (url.searchParams.get("instrument") || "").toUpperCase();
   const spotProduct = (url.searchParams.get("spotProduct") || "BTC-USD").toUpperCase();
   const minDte = Number(url.searchParams.get("minDte") || 14);
-  const maxDte = Number(url.searchParams.get("maxDte") || 120);
+  const maxDte = Number(url.searchParams.get("maxDte") || 90);
+  const feeModel = (url.searchParams.get("feeModel") || "realistic").toLowerCase();
+  const fundingCostAnnual = Number(url.searchParams.get("fundingCostAnnual") || 0.04);
+  const futuresMarginCostAnnual = Number(url.searchParams.get("futuresMarginCostAnnual") || 0.01);
+  const safetyBufferAnnual = Number(url.searchParams.get("safetyBufferAnnual") || 0.02);
+  const nonWeeklyDeliveryFeeBps = Number(url.searchParams.get("nonWeeklyDeliveryFeeBps") || 2.5);
+  const feeProfiles = {
+    conservative: { spotFeeBps: 40, futureFeeBps: 5, spotSlippageBps: 10, futureSlippageBps: 10 },
+    realistic: { spotFeeBps: 40, futureFeeBps: 0, spotSlippageBps: 5, futureSlippageBps: 5 },
+    activeMaker: { spotFeeBps: 10, futureFeeBps: 0, spotSlippageBps: 3, futureSlippageBps: 3 },
+    optimistic: { spotFeeBps: 3, futureFeeBps: 0, spotSlippageBps: 2, futureSlippageBps: 2 }
+  };
+  const fees = feeProfiles[feeModel] || feeProfiles.realistic;
   const cacheMs = 20 * 1000;
 
-  const instrumentsPayload = await fetchJson(
-    `${deribitBase}/public/get_instruments?currency=BTC&kind=future&expired=false`,
-    cacheMs
-  );
+  const [instrumentsPayload, summariesPayload, spotTicker] = await Promise.all([
+    fetchJson(`${deribitBase}/public/get_instruments?currency=BTC&kind=future&expired=false`, cacheMs),
+    fetchJson(`${deribitBase}/public/get_book_summary_by_currency?currency=BTC&kind=future`, cacheMs),
+    fetchJson(`${coinbaseExchangeBase}/products/${spotProduct}/ticker`, cacheMs)
+  ]);
   const instruments = instrumentsPayload.result || [];
-  const chosen =
-    instruments.find((instrument) => instrument.instrument_name === requestedInstrument) ||
-    chooseDeribitFuture(instruments, minDte, maxDte);
+  const spot = Number(spotTicker.price);
+  const instrumentByName = new Map(instruments.map((instrument) => [instrument.instrument_name, instrument]));
+  const spotRoundTripRate = (fees.spotFeeBps * 2 + fees.spotSlippageBps * 2) / 10000;
+  const futuresRoundTripRate = (Math.abs(fees.futureFeeBps) * 2 + fees.futureSlippageBps * 2) / 10000;
+  const liveRows = (summariesPayload.result || [])
+    .map((summary) => {
+      const instrument = instrumentByName.get(summary.instrument_name);
+      if (!instrument || instrument.instrument_name === "BTC-PERPETUAL") return null;
+      const daysToExpiry = Math.max(0.01, (Number(instrument.expiration_timestamp) - Date.now()) / 86400000);
+      if (daysToExpiry < minDte || daysToExpiry > maxDte) return null;
+      const future =
+        Number(summary.mid_price) ||
+        Number(summary.mark_price) ||
+        Number(summary.last) ||
+        Number(summary.estimated_delivery_price);
+      if (!Number.isFinite(spot) || !Number.isFinite(future) || spot <= 0 || future <= 0) return null;
+      const basis = future / spot - 1;
+      const annualizedBasis = basis * (365 / daysToExpiry);
+      const deliveryFeeBps = deribitDeliveryFeeBps(Number(instrument.expiration_timestamp), nonWeeklyDeliveryFeeBps);
+      const amortizedSpotFee = spotRoundTripRate * (365 / daysToExpiry);
+      const amortizedFuturesFee = futuresRoundTripRate * (365 / daysToExpiry);
+      const amortizedDelivery = (deliveryFeeBps / 10000) * (365 / daysToExpiry);
+      const netAnnualizedBasis =
+        annualizedBasis -
+        fundingCostAnnual -
+        futuresMarginCostAnnual -
+        safetyBufferAnnual -
+        amortizedSpotFee -
+        amortizedFuturesFee -
+        amortizedDelivery;
+      return {
+        instrument: instrument.instrument_name,
+        spotPrice: spot,
+        futurePrice: future,
+        basis,
+        annualizedBasis,
+        netAnnualizedBasis,
+        daysToExpiry,
+        openInterest: Number(summary.open_interest || 0),
+        volumeUsd: Number(summary.volume_usd || 0),
+        bidPrice: summary.bid_price === null ? null : Number(summary.bid_price),
+        askPrice: summary.ask_price === null ? null : Number(summary.ask_price),
+        deliveryFeeBps,
+        amortizedSpotFee,
+        amortizedFuturesFee,
+        amortizedDelivery,
+        isWeekly: !isLastFridayExpiry(Number(instrument.expiration_timestamp)),
+        isQuarterly: isQuarterlyExpiry(Number(instrument.expiration_timestamp))
+      };
+    })
+    .filter(Boolean);
+  const requestedRow = liveRows.find((row) => row.instrument === requestedInstrument);
+  const bestRow = requestedRow || liveRows.sort((a, b) => b.netAnnualizedBasis - a.netAnnualizedBasis)[0];
 
-  if (!chosen) {
+  if (!bestRow) {
     sendJson(response, 404, { error: "No Deribit BTC dated future matched the requested DTE window." });
     return;
   }
 
-  const [futureSummary, spotTicker] = await Promise.all([
-    fetchJson(
-      `${deribitBase}/public/get_book_summary_by_instrument?instrument_name=${chosen.instrument_name}`,
-      cacheMs
-    ),
-    fetchJson(`${coinbaseExchangeBase}/products/${spotProduct}/ticker`, cacheMs)
-  ]);
-
-  const summary = (futureSummary.result || [])[0];
-  if (!summary) {
-    sendJson(response, 404, { error: `No live book summary returned for ${chosen.instrument_name}.` });
-    return;
-  }
-
-  const spot = Number(spotTicker.price);
-  const future =
-    Number(summary.mid_price) ||
-    Number(summary.mark_price) ||
-    Number(summary.last) ||
-    Number(summary.estimated_delivery_price);
-  const daysToExpiry = Math.max(
-    0.01,
-    (Number(chosen.expiration_timestamp) - Date.now()) / 86400000
-  );
-  const basis = future / spot - 1;
-  const annualized = basis * (365 / daysToExpiry);
-
   sendJson(response, 200, {
     mode: "public-deribit-coinbase-live",
     time: Date.now(),
-    frequency: "20s REST polling for live basis monitor",
-    instrument: chosen.instrument_name,
+    frequency: "20s REST polling for live net-basis monitor",
+    instrument: bestRow.instrument,
     spotProduct,
-    spotPrice: spot,
-    futurePrice: future,
-    basis,
-    annualizedBasis: annualized,
-    daysToExpiry,
-    openInterest: Number(summary.open_interest || 0),
-    volumeUsd: Number(summary.volume_usd || 0),
-    bidPrice: summary.bid_price === null ? null : Number(summary.bid_price),
-    askPrice: summary.ask_price === null ? null : Number(summary.ask_price)
+    feeModel,
+    assumptions: { minDte, maxDte, fees, fundingCostAnnual, futuresMarginCostAnnual, safetyBufferAnnual, nonWeeklyDeliveryFeeBps },
+    rows: { candidates: liveRows.length },
+    ...bestRow
   });
 }
 

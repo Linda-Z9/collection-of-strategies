@@ -13,38 +13,43 @@ METADATA = {
     "runtime": "Few minutes",
     "capital_need": "Medium-high",
     "best_role": "Low frequency carry",
-    "base_return": 0.118,
-    "base_vol": 0.088,
+    "base_return": 0.082,
+    "base_vol": 0.062,
     "tail_risk": 36,
     "carry_bias": 0.64,
     "public": True,
     "description": (
-        "Buy spot and sell rich dated futures when annualized basis exceeds financing, fees, margin drag, and "
-        "execution costs."
+        "Buy spot BTC and sell liquid Deribit weekly or quarterly futures only when gross and net annualized basis "
+        "clear conservative financing, Coinbase maker fees, delivery fees, slippage, and a safety buffer."
     ),
     "does": (
         "It buys spot BTC and sells a rich dated futures contract, aiming to capture convergence between futures and "
-        "spot by expiry. The public route tracks annualized basis, days to expiry, and the modeled cost of holding "
-        "and rolling the spread."
+        "spot by expiry. The public route now favors holding to expiry, uses 14-90 DTE contracts, and requires "
+        "a high net basis after realistic spot fees, futures fees, delivery fees, slippage, funding, and safety buffer."
     ),
     "signals": [
-        "Annualized front-month and second-month net basis",
-        "Curve slope between spot, near future, and next future",
-        "Volume and open-interest minimums by expiry",
-        "Roll cost and margin utilization before trade entry",
+        "Gross annualized basis above 12-15% and net edge above 3-5%",
+        "Weekly or quarterly expiry selection with 14-90 days to expiry",
+        "Coinbase maker fee, Deribit maker/taker fallback, delivery fee, slippage, and funding cost stack",
+        "Roll only when the next contract improves net basis by at least 3% annualized",
     ],
     "checklist": [
-        "Build a spot, near-month, next-month basis curve.",
-        "Normalize every opportunity as annualized net basis.",
-        "Backtest expiry-hold before dynamic roll rules.",
-        "Trade only liquid expiries at first.",
+        "Use post-only spot and futures orders; avoid Coinbase taker execution.",
+        "Normalize every opportunity as gross basis minus annualized cost stack.",
+        "Prefer weekly expiry-hold or near-quarterly carry over frequent rolls.",
+        "Trade only if net basis clears the minimum edge and liquidity filters.",
     ],
     "risks": [
         "Margin pressure can arrive before expiry convergence is realized.",
         "Illiquid expiries can produce fake historical edge.",
         "Financing cost and collateral haircuts can move against the trade.",
+        "Coinbase taker orders or weak fee tiers can erase the entire spread.",
     ],
-    "sources": ["Deribit dated futures", "Coinbase BTC-USD spot candles", "CME or vendor futures data later"],
+    "sources": [
+        "Deribit dated futures and book summaries",
+        "Coinbase BTC-USD spot candles and Exchange fee tiers",
+        "SOFR or T-bill funding cost proxy",
+    ],
 }
 
 
@@ -132,6 +137,7 @@ def _cached_payload(capital, lookback):
         "basisCompressionPnl",
         "fees",
         "slippage",
+        "deliveryFees",
         "rollCost",
         "fundingCost",
         "totalCosts",
@@ -141,7 +147,7 @@ def _cached_payload(capital, lookback):
 
     return {
         "mode": f"{metadata.get('mode') or 'cached-public-futures-basis'}-csv-cache",
-        "instrument": metadata.get("instrument") or "rolling-nearest-liquid",
+        "instrument": metadata.get("instrument") or "weekly-quarterly-high-threshold",
         "spotProduct": metadata.get("spotProduct") or "BTC-USD",
         "days": min(lookback, int(metadata.get("days") or lookback)),
         "frequency": metadata.get("frequency") or "Cached public futures basis backtest CSV",
